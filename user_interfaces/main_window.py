@@ -1,14 +1,12 @@
 from PyQt5 import QtWidgets
 
-from pykaboo5b import progname, progversion
 from user_interfaces.nv_localiser import NVLocaliser
+from utility.config import global_confs
 
 
 class MainWindow(QtWidgets.QMainWindow):
     count = 0  # number of opened windows
     nvloc_isopen = False  # status of NV Localiser widget
-
-    #    log_isopen = False #status of NV Localiser widget
 
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -28,7 +26,7 @@ class MainWindow(QtWidgets.QMainWindow):
         file.addAction("Tiled")
         file.triggered[QtWidgets.QAction].connect(self.file_windowaction)
 
-        self.setWindowTitle("%s %s" % (progname, progversion))
+        self.setWindowTitle("%s %s" % (global_confs['progname'], global_confs['progversion']))
 
     def task_windowaction(self, q):  # executes when task menu item selected
 
