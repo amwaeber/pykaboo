@@ -28,7 +28,6 @@ from scipy.interpolate import griddata
 import dxfgrabber
 from dxfwrite import DXFEngine as dxf
 
-os.chdir("C:/DOCS/Python/MyPy") # set current directory to MyPy
 import tum_jet # definition of TUM colours
 
 ###############
