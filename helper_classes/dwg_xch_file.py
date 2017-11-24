@@ -1,4 +1,5 @@
 import dxfgrabber
+import os
 from dxfwrite import DXFEngine as dxf
 from matplotlib import patches as patches
 from matplotlib.path import Path
@@ -46,7 +47,7 @@ class DwgXchFile:
                     self.patch_list.append(patches.PathPatch(path, fill=False, color='r'))
 
     def add(self, magnet_name, pos):
-        dwg_mag = dxfgrabber.readfile(paths['dxf'] + magnet_name + '.dxf')
+        dwg_mag = dxfgrabber.readfile(os.path.join(paths['dxf'], magnet_name + '.dxf'))
         all_layer_cont = [entity for entity in dwg_mag.entities if entity.layer == 'MAGNET']
         for entity in all_layer_cont:
             entity.points = [(pt[0] + 470 + pos[0], pt[1] + 470 + pos[1]) for pt in entity.points]
