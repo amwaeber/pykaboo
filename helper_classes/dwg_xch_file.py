@@ -3,7 +3,7 @@ from dxfwrite import DXFEngine as dxf
 from matplotlib import patches as patches
 from matplotlib.path import Path
 
-from pykaboo5b import flatten_list
+from utility.utility_functions import flatten_list
 
 
 class DwgXchFile:
