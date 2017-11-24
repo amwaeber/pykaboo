@@ -11,5 +11,8 @@ def write_config():
     config['globals'] = {'progname': 'Pyk-A-Boo',
                          'progversion': '0.5.2'}
 
+    config['paths'] = {'dxf': os.path.join(project_path, 'dxf'),
+                       'registration': project_path}
+
     with open(config_path, 'w') as f:
         config.write(f)

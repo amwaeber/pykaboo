@@ -8,6 +8,7 @@ from scipy.interpolate import griddata
 from helper_classes.dwg_xch_file import DwgXchFile
 from helper_classes.stack import Stack
 from plot_classes.color_plot import ColorPlot
+from utility.config import paths
 from utility.utility_functions import two_d_gaussian_sym, flatten_list, affine_trafo
 
 
@@ -118,13 +119,13 @@ class NVLocaliser(QtWidgets.QWidget):
 
         elif q.text() == "Load *.dxf":
             fname = \
-                QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 'C:\\DATA\\NV Characterisation\\Registration',
+                QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', paths['registration'],
                                                       "Drawing interchange files (*.dxf)")[0]
             self.load_dxf(fname)
 
         elif q.text() == "New *.dxf":
             #            fname = 'C:/DOCS/Python/MyPy/dxf/coords.dxf'
-            fname = 'C:/DOCS/Python/MyPy/dxf/coords_new.dxf'
+            fname = os.path.join(paths['dxf'], 'coords_new.dxf')
             self.load_dxf(fname)
 
         else:
@@ -132,7 +133,7 @@ class NVLocaliser(QtWidgets.QWidget):
 
     def load_raw(self):
         self.dir_name = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open folder',
-                                                                   'C:\\DATA\\NV Characterisation\\Registration')
+                                                                   paths['registration'])
         self.dir_content = [f for f in os.listdir(self.dir_name) if
                             (f.startswith('scan') or f.startswith('field')) and f.endswith('.mat')]
         #        self.dir_content = [f for f in os.listdir(self.dir_name) if (f.startswith('field') and f.endswith('.mat'))]
@@ -285,7 +286,7 @@ class NVLocaliser(QtWidgets.QWidget):
     def save_dxf(self):
         if self.overwrite_cb.isChecked() == False:
             fname = \
-                QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', 'C:\\DATA\\NV Characterisation\\Registration',
+                QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', paths['registration'],
                                                       "Drawing interchange files (*.dxf)")[0]
             if not fname.endswith('.dxf'):
                 fname += ".dxf"
@@ -294,7 +295,7 @@ class NVLocaliser(QtWidgets.QWidget):
         else:
             print('Checkbox isn\'t working')
             fname = \
-                QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', 'C:\\DATA\\NV Characterisation\\Registration',
+                QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', paths['registration'],
                                                       "Drawing interchange files (*.dxf)")[0]
             if not fname.endswith('.dxf'):
                 fname += ".dxf"
@@ -348,7 +349,7 @@ class NVLocaliser(QtWidgets.QWidget):
                     pass
 
     def save_png(self):
-        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', 'C:\\DATA\\NV Characterisation\\Registration',
+        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', paths['registration'],
                                                       "Portable network graphics (*.png)")[0]
         if not fname.endswith('.png'):
             fname += ".png"
