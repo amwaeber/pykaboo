@@ -155,3 +155,8 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+/config.ini
+.idea/misc.xml
+.idea/modules.xml
+.idea/pykaboo.iml
+.idea/vcs.xml
