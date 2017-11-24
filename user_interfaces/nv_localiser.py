@@ -12,6 +12,7 @@ from utility.config import paths
 from utility.utility_functions import two_d_gaussian_sym, flatten_list, affine_trafo
 
 
+# noinspection PyAttributeOutsideInit
 class NVLocaliser(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(NVLocaliser, self).__init__(parent)
@@ -124,7 +125,6 @@ class NVLocaliser(QtWidgets.QWidget):
             self.load_dxf(fname)
 
         elif q.text() == "New *.dxf":
-            #            fname = 'C:/DOCS/Python/MyPy/dxf/coords.dxf'
             fname = os.path.join(paths['dxf'], 'coords_new.dxf')
             self.load_dxf(fname)
 
@@ -134,6 +134,9 @@ class NVLocaliser(QtWidgets.QWidget):
     def load_raw(self):
         self.dir_name = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open folder',
                                                                    paths['registration'])
+        if self.dir_name == '':
+            return
+
         self.dir_content = [f for f in os.listdir(self.dir_name) if
                             (f.startswith('scan') or f.startswith('field')) and f.endswith('.mat')]
         #        self.dir_content = [f for f in os.listdir(self.dir_name) if (f.startswith('field') and f.endswith('.mat'))]
