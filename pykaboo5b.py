@@ -14,16 +14,13 @@ import sys
 
 import matplotlib
 import numpy as np
-import scipy.io  # to read and write .mat files
 import scipy.optimize as opt
 from PyQt5 import QtWidgets
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 from scipy.interpolate import griddata
 
-import tum_jet  # definition of TUM colours
 from helper_classes.dwg_xch_file import DwgXchFile
 from helper_classes.stack import Stack
+from plot_classes.color_plot import ColorPlot
 
 matplotlib.use('Qt5Agg')  # Make sure that we are using QT5
 
@@ -63,108 +60,6 @@ def affine_trafo(raw_coords, real_coords):
 
 def flatten_list(lst):
     return [item for sublist in lst for item in sublist]
-
-
-######################
-### HELPER CLASSES ###
-######################
-
-
-####################
-### Plot Classes ###
-####################
-class MyMplCanvas(FigureCanvas):
-    """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
-
-    def __init__(self, parent=None, width=4, height=4, dpi=100):
-        self.fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = self.fig.add_subplot(111)
-        self.compute_initial_figure()
-
-        FigureCanvas.__init__(self, self.fig)
-        self.setParent(parent)
-
-        FigureCanvas.setSizePolicy(self,
-                                   QtWidgets.QSizePolicy.Expanding,
-                                   QtWidgets.QSizePolicy.Expanding)
-        FigureCanvas.updateGeometry(self)
-
-
-class ColorPlot(MyMplCanvas):
-    """A canvas that updates itself every second with a new plot."""
-
-    def __init__(self, *args, **kwargs):
-        MyMplCanvas.__init__(self, *args, **kwargs)
-
-    def compute_initial_figure(self):
-        self.graph = []
-        self.select_coord = []
-        self.select_nv = []
-        self.dxf_objects = []
-        self.cts_xy = np.random.random((100, 100))
-        self.x_axis = np.arange(0, 10, 0.1)
-        self.y_axis = np.arange(0, 10, 0.1)
-        self.x_lim = [0, 10]
-        self.y_lim = [0, 10]
-        self.cts_vmin = 0
-        self.cts_vmax = 10
-        self.axes.imshow(self.cts_xy, extent=(self.x_axis[0], self.x_axis[-1], self.y_axis[0], self.y_axis[-1]),
-                         cmap=tum_jet.tum_jet, vmin=self.cts_vmin, vmax=self.cts_vmax)
-
-    def load_mat(self, filename):
-        self.graph = scipy.io.loadmat(filename)
-        self.select_coord = []
-        self.select_nv = []
-        if 'result_sec_chan' in self.graph.keys():
-            self.cts_xy = np.reshape(2 * self.graph['result_sec_chan'].ravel() - self.graph['result'].ravel(),
-                                     (len(self.graph['result']), len(self.graph['result'])))
-        else:
-            self.cts_xy = self.graph['result']
-        self.x_axis = self.graph['x'][0]
-        self.y_axis = self.graph['y'][0]
-        self.axes.cla()
-        self.axes.imshow(self.cts_xy, extent=(self.x_axis[0], self.x_axis[-1],
-                                              self.y_axis[0], self.y_axis[-1]), cmap=tum_jet.tum_jet,
-                         vmin=self.cts_vmin, vmax=self.cts_vmax)
-        self.draw()
-
-    def draw_dxf(self):
-        self.axes.cla()
-        if len(self.cts_xy):
-            self.axes.imshow(self.cts_xy, extent=(self.x_axis[0], self.x_axis[-1], self.y_axis[0], self.y_axis[-1]),
-                             cmap=tum_jet.tum_jet, vmin=self.cts_vmin, vmax=self.cts_vmax)
-        if len(self.dxf_objects):
-            for patch in self.dxf_objects:
-                self.axes.add_patch(patch)
-        if len(self.select_coord):
-            self.axes.plot([pt[0] for pt in self.select_coord], [pt[1] for pt in self.select_coord], ls='None',
-                           marker='o', markerfacecolor='None', markeredgecolor='r')
-        if len(self.select_nv):
-            for patch in self.select_nv:
-                self.axes.add_patch(patch)
-        self.axes.set_xlim(self.x_lim[0], self.x_lim[-1])
-        self.axes.set_ylim(self.y_lim[0], self.y_lim[-1])
-        self.draw()
-
-    def redraw(self, **kwargs):
-        self.cts_vmin = kwargs.get('cts_vmin', self.cts_vmin)
-        self.cts_vmax = kwargs.get('cts_vmax', self.cts_vmax)
-        self.select_coord = kwargs.get('scatter', self.select_coord)
-        self.select_nv = kwargs.get('sel_scatter', self.select_nv)
-        self.axes.cla()
-        self.axes.imshow(self.cts_xy, extent=(self.x_axis[0], self.x_axis[-1],
-                                              self.y_axis[0], self.y_axis[-1]), cmap=tum_jet.tum_jet,
-                         vmin=self.cts_vmin, vmax=self.cts_vmax)
-        if len(self.select_coord):
-            self.axes.plot([pt[0] for pt in self.select_coord], [pt[1] for pt in self.select_coord], ls='None',
-                           marker='o', markerfacecolor='None', markeredgecolor='k')
-        if len(self.select_nv):
-            self.axes.plot([pt[0] for pt in self.select_nv], [pt[1] for pt in self.select_nv], ls='None', marker='o',
-                           markerfacecolor='r', markeredgecolor='w')
-        self.draw()
-
-    def save(self, fname):
-        self.fig.savefig(fname)
 
 
 ###################
@@ -244,36 +139,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         else:
             pass
-
-
-###############
-#### Logger ###
-###############
-#
-# class Logger(QtWidgets.QWidget):
-#
-#    def __init__(self, parent = None):
-#        super(Logger, self).__init__(parent)
-#
-#        self.edt_log = QtWidgets.QTextEdit('Log: \n', self)
-#        self.save_btn = QtWidgets.QPushButton('Save', self)
-#        self.save_btn.setToolTip('Save log file')
-#        self.save_btn.setObjectName('-1')
-#        self.save_btn.clicked.connect(self.save_log)
-#        self.save_btn.resize(self.save_btn.sizeHint())
-#
-#        main_vbox = QtWidgets.QVBoxLayout(self)
-#        main_vbox.setSpacing(10)
-#        main_vbox.addWidget(self.edt_log)
-#        main_vbox.addWidget(self.save_btn)
-#
-#    def save_log(self):
-#        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', 'C:\\DATA\\NV Characterisation\\Registration',"Text files (*.txt)")[0]
-#        if not fname.endswith('.txt'):
-#            fname += ".txt"
-#        file = open(fname,'w')
-#        file.write(self.edt_log.toPlainText())
-#        file.close()
 
 
 ####################
@@ -387,8 +252,8 @@ class NVLocaliser(QtWidgets.QWidget):
 
         elif q.text() == "Load *.dxf":
             fname = \
-            QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 'C:\\DATA\\NV Characterisation\\Registration',
-                                                  "Drawing interchange files (*.dxf)")[0]
+                QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 'C:\\DATA\\NV Characterisation\\Registration',
+                                                      "Drawing interchange files (*.dxf)")[0]
             self.load_dxf(fname)
 
         elif q.text() == "New *.dxf":
@@ -417,8 +282,8 @@ class NVLocaliser(QtWidgets.QWidget):
         up_down = self.sender()
         if self.raw_loaded:
             if (self.dir_content.index(self.edt_curr_file.text()) == 0 and int(up_down.objectName()) == -1) or (
-                    self.dir_content.index(self.edt_curr_file.text()) == len(self.dir_content) - 1 and int(
-                    up_down.objectName()) == 1):
+                            self.dir_content.index(self.edt_curr_file.text()) == len(self.dir_content) - 1 and int(
+                        up_down.objectName()) == 1):
                 pass
             else:
                 self.edt_curr_file.setText(
@@ -554,8 +419,8 @@ class NVLocaliser(QtWidgets.QWidget):
     def save_dxf(self):
         if self.overwrite_cb.isChecked() == False:
             fname = \
-            QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', 'C:\\DATA\\NV Characterisation\\Registration',
-                                                  "Drawing interchange files (*.dxf)")[0]
+                QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', 'C:\\DATA\\NV Characterisation\\Registration',
+                                                      "Drawing interchange files (*.dxf)")[0]
             if not fname.endswith('.dxf'):
                 fname += ".dxf"
         elif self.overwrite_cb.isChecked() == True:
@@ -563,8 +428,8 @@ class NVLocaliser(QtWidgets.QWidget):
         else:
             print('Checkbox isn\'t working')
             fname = \
-            QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', 'C:\\DATA\\NV Characterisation\\Registration',
-                                                  "Drawing interchange files (*.dxf)")[0]
+                QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', 'C:\\DATA\\NV Characterisation\\Registration',
+                                                      "Drawing interchange files (*.dxf)")[0]
             if not fname.endswith('.dxf'):
                 fname += ".dxf"
         self.dxf_in.save(fname)
@@ -622,14 +487,6 @@ class NVLocaliser(QtWidgets.QWidget):
         if not fname.endswith('.png'):
             fname += ".png"
         self.dxf_img.save(fname)
-
-
-# close subwindow and remove menu entry - not working yet!
-#    def closeEvent(self, event):
-#        self.parent().bar.removeAction(self.local_menu.menuAction())
-#        event.accept() # let the window close
-
-
 
 
 #####################
