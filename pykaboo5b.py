@@ -12,23 +12,22 @@ Created on Thu Apr 27 11:07:11 2017
 import os
 import sys
 
+import dxfgrabber
 import matplotlib
-from PyQt5 import QtWidgets
-
-matplotlib.use('Qt5Agg')  # Make sure that we are using QT5
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-from matplotlib.path import Path
 import matplotlib.patches as patches
 import numpy as np
 import scipy.io  # to read and write .mat files
 import scipy.optimize as opt
+from PyQt5 import QtWidgets
+from dxfwrite import DXFEngine as dxf
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+from matplotlib.path import Path
 from scipy.interpolate import griddata
 
-import dxfgrabber
-from dxfwrite import DXFEngine as dxf
-
 import tum_jet  # definition of TUM colours
+
+matplotlib.use('Qt5Agg')  # Make sure that we are using QT5
 
 ###############
 ### GLOBALS ###
