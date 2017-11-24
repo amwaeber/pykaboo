@@ -12,20 +12,18 @@ Created on Thu Apr 27 11:07:11 2017
 import os
 import sys
 
-import dxfgrabber
 import matplotlib
-import matplotlib.patches as patches
 import numpy as np
 import scipy.io  # to read and write .mat files
 import scipy.optimize as opt
 from PyQt5 import QtWidgets
-from dxfwrite import DXFEngine as dxf
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from matplotlib.path import Path
 from scipy.interpolate import griddata
 
 import tum_jet  # definition of TUM colours
+from helper_classes.dwg_xch_file import DwgXchFile
+from helper_classes.stack import Stack
 
 matplotlib.use('Qt5Agg')  # Make sure that we are using QT5
 
@@ -41,7 +39,7 @@ def test():
     pass
 
 
-def twoD_Gaussian_sym(xy, amplitude, xo, yo, sigma, offset):
+def two_d_gaussian_sym(xy, amplitude, xo, yo, sigma, offset):
     xo = float(xo)
     yo = float(yo)
     g = offset + amplitude * np.exp(- (((xy[0] - xo) ** 2) + ((xy[1] - yo) ** 2)) / (2 * sigma ** 2))
@@ -55,12 +53,10 @@ def affine_trafo(raw_coords, real_coords):
     # Pad the data with ones, so that our transformation can do translations too
     if primary.shape[0] >= 3:
         pad = lambda x: np.hstack([x, np.ones((x.shape[0], 1))])
-        #        unpad = lambda x: x[:,:-1]
-        X = pad(primary)
-        Y = pad(secondary)
-        A, res, rank, s = np.linalg.lstsq(X, Y, rcond=1e-4)
-        #        transform = lambda x: unpad(np.dot(pad(x), A))
-        return A
+        x = pad(primary)
+        y = pad(secondary)
+        a, res, rank, s = np.linalg.lstsq(x, y, rcond=1e-4)
+        return a
     else:
         return []
 
@@ -72,106 +68,6 @@ def flatten_list(lst):
 ######################
 ### HELPER CLASSES ###
 ######################
-
-class Stack:
-    def __init__(self):
-        self.items = []
-
-    def empty(self):
-        self.__init__()
-
-    def isEmpty(self):
-        return self.items == []
-
-    def push(self, item):
-        self.items.append(item)
-
-    def pop(self):
-        return self.items.pop()
-
-    def peek(self):
-        return self.items[len(self.items) - 1]
-
-    def size(self):
-        return len(self.items)
-
-
-class DwgXchFile:
-    def __init__(self):
-        self.location = None
-        self.entities = []
-        self.new_entities = []
-        self.layers = []
-        self.shapes = []
-        self.patch_list = []
-        self.new_patch_list = []
-
-    def load(self, fname, flayers, fshapes):
-        self.location = fname
-        self.layers = flayers
-        self.shapes = fshapes
-        dwg_in = dxfgrabber.readfile(fname)
-        for l in range(len(self.layers)):
-            all_layer_cont = [entity for entity in dwg_in.entities if entity.layer == self.layers[l]]
-            if self.shapes[l] == 'POLYLINE':
-                for entity in all_layer_cont:
-                    if not (entity.points[0] == entity.points[-1]):
-                        entity.points.append(entity.points[0])
-            self.entities.append(all_layer_cont)
-
-        for l in range(len(self.layers)):
-            if self.layers[l] == 'ALIGN':
-                for entity in self.entities[l]:
-                    codes = [Path.MOVETO] + [Path.LINETO for i in range(len(entity.points) - 2)] + [Path.CLOSEPOLY]
-                    path = Path([p[:-1] for p in entity.points], codes)
-                    self.patch_list.append(patches.PathPatch(path, fill=False, color='c'))
-            elif self.layers[l] == 'COORD':
-                for entity in self.entities[l]:
-                    self.patch_list.append(patches.Circle(entity.center[:-1], entity.radius, fill=False, color='g'))
-            elif self.layers[l] == 'MAGNET':
-                for entity in self.entities[l]:
-                    codes = [Path.MOVETO] + [Path.LINETO for i in range(len(entity.points) - 2)] + [Path.CLOSEPOLY]
-                    path = Path([p[:-1] for p in entity.points], codes)
-                    self.patch_list.append(patches.PathPatch(path, fill=False, color='r'))
-
-    def add(self, magnet_name, pos):
-        dwg_mag = dxfgrabber.readfile('C:/DOCS/Python/MyPy/dxf/' + magnet_name + '.dxf')
-        all_layer_cont = [entity for entity in dwg_mag.entities if entity.layer == 'MAGNET']
-        for entity in all_layer_cont:
-            entity.points = [(pt[0] + 470 + pos[0], pt[1] + 470 + pos[1]) for pt in entity.points]
-            if not (entity.points[0] == entity.points[-1]):
-                entity.points.append(entity.points[0])
-        self.new_entities.append(all_layer_cont)
-        added_patches = []
-        for entity in self.new_entities[-1]:
-            codes = [Path.MOVETO] + [Path.LINETO for i in range(len(entity.points) - 2)] + [Path.CLOSEPOLY]
-            path = Path(entity.points, codes)
-            added_patches.append(patches.PathPatch(path, fill=False, color='y'))
-        self.new_patch_list.append(added_patches)
-
-    def remove_last(self):
-        self.new_entities.pop()
-        self.new_patch_list.pop()
-
-    def save(self, fname):
-        dwg_out = dxf.drawing(fname)
-        for ind, layer in enumerate(self.layers):
-            dwg_out.add_layer(layer, color=ind + 1)
-        for align in self.entities[0]:
-            pline = dxf.polyline(align.points, color=256, layer='ALIGN')
-            pline.close()
-            dwg_out.add(pline)
-        for coord in self.entities[1]:
-            dwg_out.add(dxf.circle(coord.radius, coord.center, color=256, layer='COORD'))
-        for mag in self.entities[2]:
-            pline = dxf.polyline(mag.points, color=256, layer='MAGNET')
-            pline.close()
-            dwg_out.add(pline)
-        for mag in flatten_list(self.new_entities):
-            pline = dxf.polyline(mag.points, color=256, layer='MAGNET')
-            pline.close()
-            dwg_out.add(pline)
-        dwg_out.save()
 
 
 ####################
@@ -551,7 +447,7 @@ class NVLocaliser(QtWidgets.QWidget):
                     self.raw_img.cts_xy.ravel()))  # self.raw_img.cts_vmax/2) # amplitude, x0, y0, sigma, offset
                 param_bounds = ([0, event.xdata - 1, event.ydata - 1, 0, -np.inf],
                                 [np.inf, event.xdata + 1, event.ydata + 1, np.inf, np.inf])
-                popt, pcov = opt.curve_fit(twoD_Gaussian_sym, [x_ax, y_ax], self.raw_img.cts_xy.ravel(),
+                popt, pcov = opt.curve_fit(two_d_gaussian_sym, [x_ax, y_ax], self.raw_img.cts_xy.ravel(),
                                            p0=initial_guess, bounds=param_bounds)
                 print(str(popt))
                 print(str(np.sqrt(pcov[1, 1] ** 2 + pcov[2, 2] ** 2)))
