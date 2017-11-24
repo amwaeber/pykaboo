@@ -3,7 +3,7 @@
 """
 Created on Thu Apr 27 11:07:11 2017
 
-@author: Andreas.Waeber
+@author: Andreas.Waeber aka webmaster3000
 """
 import sys
 
