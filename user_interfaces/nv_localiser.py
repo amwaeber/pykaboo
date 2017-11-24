@@ -52,10 +52,10 @@ class NVLocaliser(QtWidgets.QWidget):
         self.edt_curr_file.setReadOnly(True)
         self.lbl_max = QtWidgets.QLabel('Max. Cts.:', self)
         self.edt_max = QtWidgets.QLineEdit('5e5', self)
-        self.edt_max.returnPressed.connect(self.changeCts)
+        self.edt_max.returnPressed.connect(self.change_cts)
         self.lbl_min = QtWidgets.QLabel('Min. Cts.:', self)
         self.edt_min = QtWidgets.QLineEdit('3e4', self)
-        self.edt_min.returnPressed.connect(self.changeCts)
+        self.edt_min.returnPressed.connect(self.change_cts)
         self.magnets_cb = QtWidgets.QComboBox()
         #        self.magnets_cb.addItems(['windmill_s', 'mercedes_s', 'sierpinski_s', 'hazard_s', 'hazard2_s', 'holey_s', 'flag_s', 'cross_s',
         #                          'mitsubishi_s', 'windmill_b', 'mercedes_b', 'hazard_b', 'hazard2_b', 'holey_b', 'flag_b', 'cross_b',
@@ -139,10 +139,9 @@ class NVLocaliser(QtWidgets.QWidget):
 
         self.dir_content = [f for f in os.listdir(self.dir_name) if
                             (f.startswith('scan') or f.startswith('field')) and f.endswith('.mat')]
-        #        self.dir_content = [f for f in os.listdir(self.dir_name) if (f.startswith('field') and f.endswith('.mat'))]
         try:
             self.raw_img.load_mat(os.path.join(self.dir_name, self.dir_content[0]))
-            self.changeCts()
+            self.change_cts()
             self.edt_curr_file.setText(self.dir_content[0])
             self.raw_loaded = True
         except:
@@ -187,7 +186,7 @@ class NVLocaliser(QtWidgets.QWidget):
                 print(str(popt))
                 print(str(np.sqrt(pcov[1, 1] ** 2 + pcov[2, 2] ** 2)))
                 self.raw_buffer.push([popt[1], popt[2]])
-                if self.nv_select_mode == False:
+                if not self.nv_select_mode:
                     self.raw_img.select_coord.append([popt[1], popt[2]])
                 else:
                     self.raw_img.select_nv.append([popt[1], popt[2]])
@@ -199,7 +198,7 @@ class NVLocaliser(QtWidgets.QWidget):
                 self.raw_img.redraw()
             if event.button == 2:  # manually select point by pressing wheel
                 self.raw_buffer.push([event.xdata, event.ydata])
-                if self.nv_select_mode == False:
+                if not self.nv_select_mode:
                     self.raw_img.select_coord.append([event.xdata, event.ydata])
                 else:
                     self.raw_img.select_nv.append([event.xdata, event.ydata])
@@ -209,9 +208,9 @@ class NVLocaliser(QtWidgets.QWidget):
                     self.dxf_img.select_nv = flatten_list(self.dxf_in.new_patch_list)
                     self.dxf_img.draw_dxf()
                 self.raw_img.redraw()
-            if (event.button == 3 and not self.raw_buffer.isEmpty()):
+            if event.button == 3 and not self.raw_buffer.is_empty():
                 x, y = self.raw_buffer.pop()
-                if self.nv_select_mode == False:
+                if not self.nv_select_mode:
                     self.raw_img.select_coord.pop()
                 else:
                     self.raw_img.select_nv.pop()
@@ -221,7 +220,7 @@ class NVLocaliser(QtWidgets.QWidget):
                 self.raw_img.redraw()
 
     def trafo(self):
-        if (len(self.raw_img.select_coord) == len(self.dxf_img.select_coord) and len(self.raw_img.select_coord) >= 3):
+        if len(self.raw_img.select_coord) == len(self.dxf_img.select_coord) and len(self.raw_img.select_coord) >= 3:
             self.trafo_matrix = affine_trafo(self.raw_img.select_coord, self.dxf_img.select_coord)
             if np.trace(self.trafo_matrix) < 2.85:
                 print(str(self.trafo_matrix))
@@ -253,7 +252,6 @@ class NVLocaliser(QtWidgets.QWidget):
                 self.dxf_buffer.empty()
                 self.raw_buffer.empty()
                 self.dxf_img.draw_dxf()
-                #                self.raw_img.cts_xy = self.raw_img.graph['result'] # when using LP580 technique, switch to full image at this point
                 self.raw_img.redraw()
                 self.nv_select_mode = True
             else:
@@ -261,7 +259,7 @@ class NVLocaliser(QtWidgets.QWidget):
         else:
             pass
 
-    def changeCts(self):
+    def change_cts(self):
         try:
             self.raw_img.cts_vmin = float(self.edt_min.text())
             self.dxf_img.cts_vmin = float(self.edt_min.text())
@@ -287,13 +285,13 @@ class NVLocaliser(QtWidgets.QWidget):
         self.dxf_loaded = True
 
     def save_dxf(self):
-        if self.overwrite_cb.isChecked() == False:
+        if not self.overwrite_cb.isChecked():
             fname = \
                 QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', paths['registration'],
                                                       "Drawing interchange files (*.dxf)")[0]
             if not fname.endswith('.dxf'):
                 fname += ".dxf"
-        elif self.overwrite_cb.isChecked() == True:
+        elif self.overwrite_cb.isChecked():
             fname = self.dxf_in.location
         else:
             print('Checkbox isn\'t working')
@@ -332,19 +330,19 @@ class NVLocaliser(QtWidgets.QWidget):
         if any([event.xdata, event.ydata]):
             if event.button == 1:
                 x, y = event.xdata, event.ydata
-                if self.nv_select_mode == False:
-                    all_COORD_ctr = [entity.center[:-1] for entity in
+                if not self.nv_select_mode:
+                    all_coord_ctr = [entity.center[:-1] for entity in
                                      self.dxf_in.entities[1]]  # centres of coordinate points (list [1] in entities)
-                    ds = [np.sqrt((x - coord[0]) ** 2 + (y - coord[1]) ** 2) for coord in all_COORD_ctr]
+                    ds = [np.sqrt((x - coord[0]) ** 2 + (y - coord[1]) ** 2) for coord in all_coord_ctr]
                     if min(ds) < 0.3:
-                        print(str(all_COORD_ctr[ds.index(min(ds))]))
-                        self.dxf_buffer.push(all_COORD_ctr[ds.index(min(ds))])
-                        self.dxf_img.select_coord.append(all_COORD_ctr[ds.index(min(ds))])
+                        print(str(all_coord_ctr[ds.index(min(ds))]))
+                        self.dxf_buffer.push(all_coord_ctr[ds.index(min(ds))])
+                        self.dxf_img.select_coord.append(all_coord_ctr[ds.index(min(ds))])
                         self.dxf_img.draw_dxf()
                 else:
                     pass
-            if (event.button == 3 and not self.dxf_buffer.isEmpty()):
-                if self.nv_select_mode == False:
+            if event.button == 3 and not self.dxf_buffer.is_empty():
+                if not self.nv_select_mode:
                     x, y = self.dxf_buffer.pop()
                     self.dxf_img.select_coord.pop()
                     self.dxf_img.draw_dxf()

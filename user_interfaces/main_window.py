@@ -4,6 +4,7 @@ from user_interfaces.nv_localiser import NVLocaliser
 from utility.config import global_confs
 
 
+# noinspection PyAttributeOutsideInit
 class MainWindow(QtWidgets.QMainWindow):
     count = 0  # number of opened windows
     nvloc_isopen = False  # status of NV Localiser widget
@@ -31,7 +32,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def task_windowaction(self, q):  # executes when task menu item selected
 
         if q.text() == "NV Localiser":
-            if MainWindow.nvloc_isopen == False:  # no nvloc window yet
+            if not MainWindow.nvloc_isopen:  # no nvloc window yet
                 MainWindow.count = MainWindow.count + 2
                 MainWindow.nvloc_isopen = True
 
