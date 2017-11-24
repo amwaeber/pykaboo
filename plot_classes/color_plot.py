@@ -1,8 +1,8 @@
 import numpy as np
 import scipy.io
 
-import tum_jet
 from plot_classes.my_mpl_canvas import MyMplCanvas
+from utility import tum_jet
 
 
 class ColorPlot(MyMplCanvas):

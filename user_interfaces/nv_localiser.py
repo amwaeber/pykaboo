@@ -353,5 +353,3 @@ class NVLocaliser(QtWidgets.QWidget):
         if not fname.endswith('.png'):
             fname += ".png"
         self.dxf_img.save(fname)
-
-
