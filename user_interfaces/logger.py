@@ -1,5 +1,4 @@
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import pyqtSlot
+from PyQt5 import QtGui, QtWidgets
 
 from utility.config import paths
 
@@ -38,13 +37,8 @@ class Logger(QtWidgets.QWidget):
             file.write(self.edt_log.toPlainText())
 
     def add_to_log(self, entry):
-        print(entry)
         self.edt_log.append(entry)
-
-    @pyqtSlot()#'QString')
-    def test(self):#, entry):
-        print('entry')
-    #     self.edt_log.append(entry)
+        self.edt_log.moveCursor(QtGui.QTextCursor.End)
 
     def clear(self):
         self.edt_log.setText('Log: ')

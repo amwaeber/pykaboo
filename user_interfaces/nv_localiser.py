@@ -14,8 +14,9 @@ from utility.utility_functions import two_d_gaussian_sym, flatten_list, affine_t
 
 # noinspection PyAttributeOutsideInit
 class NVLocaliser(QtWidgets.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, logger, parent=None):
         super(NVLocaliser, self).__init__(parent)
+        self.logger = logger
 
         self.raw_buffer = Stack()
         self.dxf_buffer = Stack()
@@ -113,6 +114,8 @@ class NVLocaliser(QtWidgets.QWidget):
         main_vbox.addLayout(hbox1)
         main_vbox.addLayout(hbox2)
 
+        self.logger.add_to_log('Started NV Localiser.')
+
     def local_menu_windowaction(self, q):  # executes when file menu item selected
 
         if q.text() == "Load *.mat":
@@ -183,8 +186,8 @@ class NVLocaliser(QtWidgets.QWidget):
                                 [np.inf, event.xdata + 1, event.ydata + 1, np.inf, np.inf])
                 popt, pcov = opt.curve_fit(two_d_gaussian_sym, [x_ax, y_ax], self.raw_img.cts_xy.ravel(),
                                            p0=initial_guess, bounds=param_bounds)
-                print(str(popt))
-                print(str(np.sqrt(pcov[1, 1] ** 2 + pcov[2, 2] ** 2)))
+                self.logger.add_to_log(str(popt))
+                self.logger.add_to_log(str(np.sqrt(pcov[1, 1] ** 2 + pcov[2, 2] ** 2)))
                 self.raw_buffer.push([popt[1], popt[2]])
                 if not self.nv_select_mode:
                     self.raw_img.select_coord.append([popt[1], popt[2]])
@@ -223,9 +226,9 @@ class NVLocaliser(QtWidgets.QWidget):
         if len(self.raw_img.select_coord) == len(self.dxf_img.select_coord) and len(self.raw_img.select_coord) >= 3:
             self.trafo_matrix = affine_trafo(self.raw_img.select_coord, self.dxf_img.select_coord)
             if np.trace(self.trafo_matrix) < 2.85:
-                print(str(self.trafo_matrix))
+                self.logger.add_to_log(str(self.trafo_matrix))
             elif len(self.trafo_matrix):
-                print(str(self.trafo_matrix))
+                self.logger.add_to_log(str(self.trafo_matrix))
                 x_ax = self.raw_img.x_axis
                 y_ax = self.raw_img.y_axis[::-1]
                 x_ax, y_ax = np.meshgrid(x_ax, y_ax)
@@ -294,7 +297,7 @@ class NVLocaliser(QtWidgets.QWidget):
         elif self.overwrite_cb.isChecked():
             fname = self.dxf_in.location
         else:
-            print('Checkbox isn\'t working')
+            self.logger.add_to_log('Checkbox isn\'t working.')
             fname = \
                 QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', paths['registration'],
                                                       "Drawing interchange files (*.dxf)")[0]
@@ -324,7 +327,7 @@ class NVLocaliser(QtWidgets.QWidget):
                                                (self.dxf_img.y_lim[1] - event.ydata) * 1.2 + event.ydata])
             self.dxf_img.draw_dxf()
         else:
-            print('you are at ', event.xdata, event.ydata, 'and something went wrong')
+            self.logger.add_to_log('you are at ', event.xdata, event.ydata, 'and something went wrong')
 
     def dxf_mouse_released(self, event):
         if any([event.xdata, event.ydata]):
@@ -335,7 +338,7 @@ class NVLocaliser(QtWidgets.QWidget):
                                      self.dxf_in.entities[1]]  # centres of coordinate points (list [1] in entities)
                     ds = [np.sqrt((x - coord[0]) ** 2 + (y - coord[1]) ** 2) for coord in all_coord_ctr]
                     if min(ds) < 0.3:
-                        print(str(all_coord_ctr[ds.index(min(ds))]))
+                        self.logger.add_to_log(str(all_coord_ctr[ds.index(min(ds))]))
                         self.dxf_buffer.push(all_coord_ctr[ds.index(min(ds))])
                         self.dxf_img.select_coord.append(all_coord_ctr[ds.index(min(ds))])
                         self.dxf_img.draw_dxf()

@@ -1,5 +1,4 @@
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
 from user_interfaces.logger import Logger
 from user_interfaces.nv_localiser import NVLocaliser
@@ -10,8 +9,6 @@ from utility.config import global_confs
 class MainWindow(QtWidgets.QMainWindow):
     count = 0  # number of opened windows
     nvloc_isopen = False  # status of NV Localiser widget
-
-    logger_signal = pyqtSignal('QString')
 
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -36,8 +33,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setWindowTitle("%s %s" % (global_confs['progname'], global_confs['progversion']))
 
+        self.logger = Logger(self)
         self.log_widget = QtWidgets.QMdiSubWindow()
-        self.log_widget.setWidget(Logger(self))
+        self.log_widget.setWidget(self.logger)
         self.log_widget.setWindowTitle("Logger")
         self.log_widget.setObjectName('WIN_LOG')
         self.mdi.addSubWindow(self.log_widget)
@@ -53,14 +51,13 @@ class MainWindow(QtWidgets.QMainWindow):
                 MainWindow.count = MainWindow.count + 2
                 MainWindow.nvloc_isopen = True
 
+                self.nv_localiser = NVLocaliser(self.logger, self)
                 self.nvloc_widget = QtWidgets.QMdiSubWindow()
-                self.nvloc_widget.setWidget(NVLocaliser(self))
+                self.nvloc_widget.setWidget(self.nv_localiser)
                 self.nvloc_widget.setWindowTitle("NV Localiser")
                 self.nvloc_widget.setObjectName('WIN_NVLOC')
                 self.mdi.addSubWindow(self.nvloc_widget)
                 self.nvloc_widget.show()
-                self.log_widget().save()
-                #self.log_widget.add_to_log('NV Localiser started.')
 
             else:
                 pass
@@ -86,14 +83,4 @@ class MainWindow(QtWidgets.QMainWindow):
 
         else:
             pass
-
-    def add_to_logger(self, entry):
-        self.logger_signal.connect(self.test)
-        self.logger_signal.emit(entry)
-        # print(entry)
-        # self.logger_signal.emit(entry)
-
-    @pyqtSlot('QString')
-    def test(self, entry):
-        print(entry)
 
