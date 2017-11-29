@@ -126,10 +126,12 @@ class NVLocaliser(QtWidgets.QWidget):
                 QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', paths['registration'],
                                                       "Drawing interchange files (*.dxf)")[0]
             self.load_dxf(fname)
+            self.logger.add_to_log('Loaded .dxf file ' + fname)
 
         elif q.text() == "New *.dxf":
             fname = os.path.join(paths['dxf'], 'coords_new.dxf')
             self.load_dxf(fname)
+            self.logger.add_to_log('Created new .dxf file.')
 
         else:
             pass
@@ -147,6 +149,7 @@ class NVLocaliser(QtWidgets.QWidget):
             self.change_cts()
             self.edt_curr_file.setText(self.dir_content[0])
             self.raw_loaded = True
+            self.logger.add_to_log('Opened .mat folder ' + self.dir_name)
         except:
             pass
 
@@ -186,12 +189,12 @@ class NVLocaliser(QtWidgets.QWidget):
                                 [np.inf, event.xdata + 1, event.ydata + 1, np.inf, np.inf])
                 popt, pcov = opt.curve_fit(two_d_gaussian_sym, [x_ax, y_ax], self.raw_img.cts_xy.ravel(),
                                            p0=initial_guess, bounds=param_bounds)
-                self.logger.add_to_log(str(popt))
-                self.logger.add_to_log(str(np.sqrt(pcov[1, 1] ** 2 + pcov[2, 2] ** 2)))
                 self.raw_buffer.push([popt[1], popt[2]])
                 if not self.nv_select_mode:
                     self.raw_img.select_coord.append([popt[1], popt[2]])
                 else:
+                    self.logger.add_to_log('Placing ' + self.magnets_cb.currentText() +
+                                           ' at ({0:.1f},{1:.1f}).'.format(popt[1], popt[2]))
                     self.raw_img.select_nv.append([popt[1], popt[2]])
                     trafo_coords = np.dot(np.array([self.raw_img.select_nv[-1][0], self.raw_img.select_nv[-1][1], 1]),
                                           self.trafo_matrix)[:-1]
@@ -204,6 +207,8 @@ class NVLocaliser(QtWidgets.QWidget):
                 if not self.nv_select_mode:
                     self.raw_img.select_coord.append([event.xdata, event.ydata])
                 else:
+                    self.logger.add_to_log('Placing ' + self.magnets_cb.currentText() +
+                                           ' at at ({0:.1f},{1:.1f}).'.format(event.xdata, event.ydata))
                     self.raw_img.select_nv.append([event.xdata, event.ydata])
                     trafo_coords = np.dot(np.array([self.raw_img.select_nv[-1][0], self.raw_img.select_nv[-1][1], 1]),
                                           self.trafo_matrix)[:-1]
@@ -216,6 +221,7 @@ class NVLocaliser(QtWidgets.QWidget):
                 if not self.nv_select_mode:
                     self.raw_img.select_coord.pop()
                 else:
+                    self.logger.add_to_log('Removing last magnet.')
                     self.raw_img.select_nv.pop()
                     self.dxf_in.remove_last()
                     self.dxf_img.select_nv = flatten_list(self.dxf_in.new_patch_list)
@@ -226,9 +232,15 @@ class NVLocaliser(QtWidgets.QWidget):
         if len(self.raw_img.select_coord) == len(self.dxf_img.select_coord) and len(self.raw_img.select_coord) >= 3:
             self.trafo_matrix = affine_trafo(self.raw_img.select_coord, self.dxf_img.select_coord)
             if np.trace(self.trafo_matrix) < 2.85:
-                self.logger.add_to_log(str(self.trafo_matrix))
+                msg = ('\n' + self.edt_curr_file.text() + ':\n' +
+                       'Affine transformation failed. Trace: {0:.2f}'.format(np.trace(self.trafo_matrix)))
+                self.logger.add_to_log(msg)
             elif len(self.trafo_matrix):
-                self.logger.add_to_log(str(self.trafo_matrix))
+                msg = ('\n' + self.edt_curr_file.text() + ':\n' +
+                       'Affine transformation successful. Identified the following coordinates:\n' +
+                       '[' + ', '.join(['({0:.1f}, {1:.1f})'.format(i[0], i[1]) for i in self.raw_img.select_coord]) + ']\n' +
+                       str(self.dxf_img.select_coord))
+                self.logger.add_to_log(msg)
                 x_ax = self.raw_img.x_axis
                 y_ax = self.raw_img.y_axis[::-1]
                 x_ax, y_ax = np.meshgrid(x_ax, y_ax)
@@ -245,7 +257,6 @@ class NVLocaliser(QtWidgets.QWidget):
                     'result']  # when using LP580 technique, switch to full image at this point
                 self.dxf_img.cts_xy = griddata((x_ax, y_ax), self.raw_img.cts_xy.ravel(), (xi, yi), method='linear',
                                                fill_value=min(self.raw_img.cts_xy.ravel()))[::-1]
-                #                self.raw_img.cts_xy = ctsi.filled(min(self.raw_img.cts_xy.ravel()))
                 self.dxf_img.x_axis = xi[0]
                 self.dxf_img.y_axis = yi.transpose()[0]
                 self.dxf_img.cts_vmin = self.raw_img.cts_vmin
@@ -304,6 +315,7 @@ class NVLocaliser(QtWidgets.QWidget):
             if not fname.endswith('.dxf'):
                 fname += ".dxf"
         self.dxf_in.save(fname)
+        self.logger.add_to_log('Saved .dxf file.')
 
         self.dxf_img.select_nv = []
         self.dxf_buffer.empty()
@@ -338,7 +350,6 @@ class NVLocaliser(QtWidgets.QWidget):
                                      self.dxf_in.entities[1]]  # centres of coordinate points (list [1] in entities)
                     ds = [np.sqrt((x - coord[0]) ** 2 + (y - coord[1]) ** 2) for coord in all_coord_ctr]
                     if min(ds) < 0.3:
-                        self.logger.add_to_log(str(all_coord_ctr[ds.index(min(ds))]))
                         self.dxf_buffer.push(all_coord_ctr[ds.index(min(ds))])
                         self.dxf_img.select_coord.append(all_coord_ctr[ds.index(min(ds))])
                         self.dxf_img.draw_dxf()
