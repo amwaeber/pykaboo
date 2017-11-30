@@ -1,8 +1,10 @@
-from PyQt5 import QtWidgets
+import os
+from PyQt5 import QtWidgets, QtGui
 
 from user_interfaces.logger import Logger
 from user_interfaces.nv_localiser import NVLocaliser
 from utility.config import global_confs
+from utility.config import paths
 
 
 # noinspection PyAttributeOutsideInit
@@ -15,6 +17,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.screenShape = QtWidgets.QDesktopWidget().screenGeometry(-1)
         self.resize(self.screenShape.width()*2//3, self.screenShape.height()*2//3)
+        self.setWindowIcon(QtGui.QIcon(os.path.join(paths['images'], 'pykaboo.png')))
 
         self.mdi = QtWidgets.QMdiArea()  # create multiple document interface widget
         self.setCentralWidget(self.mdi)
