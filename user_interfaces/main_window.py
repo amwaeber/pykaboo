@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets, QtGui
 
 from user_interfaces.logger import Logger
 from user_interfaces.nv_localiser import NVLocaliser
+from user_interfaces.minicad import MiniCAD
 from utility.config import global_confs
 from utility.config import paths
 
@@ -11,6 +12,7 @@ from utility.config import paths
 class MainWindow(QtWidgets.QMainWindow):
     count = 0  # number of opened windows
     nvloc_isopen = False  # status of NV Localiser widget
+    mincad_isopen = False  # status of MiniCAD widget
 
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -26,6 +28,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         task = self.bar.addMenu("Task")  # menu with different tasks (fitting, finding NVs,...)
         task.addAction("NV Localiser")
+        task.addAction("MiniCAD")
         task.triggered[QtWidgets.QAction].connect(self.task_windowaction)
 
         file = self.bar.addMenu("File")  # menu with file tasks (open, load, close, new,...) Currently dummy
@@ -61,6 +64,22 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.nvloc_widget.setObjectName('WIN_NVLOC')
                 self.mdi.addSubWindow(self.nvloc_widget)
                 self.nvloc_widget.show()
+
+            else:
+                pass
+
+        elif q.text() == "MiniCAD":
+            if not MainWindow.minicad_isopen:  # no minicad window yet
+                MainWindow.count = MainWindow.count + 1
+                MainWindow.minicad_isopen = True
+
+                self.minicad = MiniCAD(self.logger, self)
+                self.minicad_widget = QtWidgets.QMdiSubWindow()
+                self.minicad_widget.setWidget(self.minicad)
+                self.minicad_widget.setWindowTitle("MiniCAD")
+                self.minicad_widget.setObjectName('WIN_MiniCAD')
+                self.mdi.addSubWindow(self.minicad_widget)
+                self.minicad_widget.show()
 
             else:
                 pass
