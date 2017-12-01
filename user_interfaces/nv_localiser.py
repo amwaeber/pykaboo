@@ -343,7 +343,7 @@ class NVLocaliser(QtWidgets.QWidget):
                                                (self.dxf_img.y_lim[1] - event.ydata) * 1.2 + event.ydata])
             self.dxf_img.draw_dxf()
         else:
-            self.logger.add_to_log('you are at ', event.xdata, event.ydata, 'and something went wrong')
+            pass
 
     def dxf_mouse_released(self, event):
         if any([event.xdata, event.ydata]):

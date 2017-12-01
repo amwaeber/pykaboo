@@ -18,10 +18,12 @@ class MiniCAD(QtWidgets.QWidget):
         self.point_buffer = Stack()
 
         self.dxf_loaded = False
-        self.mode = -1
+        self.mode = -1  # object selection mode
 
         self.local_menu = self.parent().bar.addMenu("MiniCAD")
         self.local_menu.addAction("Load *.dxf")
+        self.local_menu.addAction("Save *.dxf")
+        self.local_menu.addAction("Save *.png")
         self.local_menu.triggered[QtWidgets.QAction].connect(self.local_menu_windowaction)
 
         self.dxf_img = ColorPlot(self, width=4, height=4, dpi=100)
@@ -54,11 +56,11 @@ class MiniCAD(QtWidgets.QWidget):
         self.load_dxf_btn = QtWidgets.QPushButton(self)
         self.load_dxf_btn.setIcon(QtGui.QIcon(os.path.join(paths['icons'], 'load.png')))
         self.load_dxf_btn.setToolTip('Load dxf file')
-        self.load_dxf_btn.clicked.connect(lambda: self.load_dxf(''))  # add proper file management
+        self.load_dxf_btn.clicked.connect(lambda: self.load_dxf(update=False))  # add proper file management
         self.load_dxf_btn.resize(self.load_dxf_btn.sizeHint())
         self.save_dxf_btn = QtWidgets.QPushButton(self)
         self.save_dxf_btn.setIcon(QtGui.QIcon(os.path.join(paths['icons'], 'save.png')))
-        self.save_dxf_btn.setToolTip('Add selection to dxf')
+        self.save_dxf_btn.setToolTip('Save dxf file')
         self.save_dxf_btn.clicked.connect(self.save_dxf)
         self.save_dxf_btn.resize(self.save_dxf_btn.sizeHint())
         self.save_png_btn = QtWidgets.QPushButton(self)
@@ -87,21 +89,16 @@ class MiniCAD(QtWidgets.QWidget):
         self.logger.add_to_log('Started MiniCAD.')
 
     def local_menu_windowaction(self, q):  # executes when file menu item selected
-
         if q.text() == "Load *.dxf":
-            fname = \
-                QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', paths['registration'],
-                                                      "Drawing interchange files (*.dxf)")[0]
-            self.load_dxf(fname)
-            self.logger.add_to_log('Loaded .dxf file ' + fname)
-
-        else:
-            pass
+            self.load_dxf(update=False)
+        elif q.text() == "Save *.dxf":
+            self.save_dxf()
+        elif q.text() == "Save *.png":
+            self.save_png()
 
     def select_color(self):
         color = QtWidgets.QColorDialog.getColor()
         self.color_btn.setStyleSheet("background-color: %s" % color.name())
-
 
     def set_mode(self, select_mode='none'):
         modes = {'none': -1,
@@ -110,7 +107,15 @@ class MiniCAD(QtWidgets.QWidget):
                  'label': 2}
         self.mode = modes[select_mode]
 
-    def load_dxf(self, fname):
+    def load_dxf(self, update=False):
+        if not update:
+            fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', paths['registration'],
+                                                          "Drawing interchange files (*.dxf)")[0]
+            if not fname:  # capture cancel in dialog
+                return
+            self.logger.add_to_log('Loaded .dxf file ' + fname)
+        else:
+            fname = self.dxf_in.location
         self.dxf_in = DwgXchFile()
         self.dxf_in.load(fname, ['ALIGN', 'COORD', 'MAGNET'], ['POLYLINE', 'CIRCLE', 'POLYLINE'])
         self.dxf_img.x_lim = np.array([0, 100])
@@ -121,18 +126,23 @@ class MiniCAD(QtWidgets.QWidget):
         self.dxf_loaded = True
 
     def save_dxf(self):
-        fname = self.dxf_in.location
+        if self.dxf_loaded:
+            fname = self.dxf_in.location
+            self.dxf_in.save(fname)
+            self.logger.add_to_log('Saved .dxf file.')
 
-        self.dxf_in.save(fname)
-        self.logger.add_to_log('Saved .dxf file.')
+            self.dxf_img.select_nv = []
+            self.point_buffer.empty()
+            self.load_dxf(update=True)
 
-        self.dxf_img.select_nv = []
-        self.point_buffer.empty()
-        self.load_dxf(fname)
-
-        self.raw_img.select_nv = []
-        self.raw_buffer.empty()
-        self.raw_img.redraw()
+    def save_png(self):
+        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', paths['registration'],
+                                                      "Portable network graphics (*.png)")[0]
+        if not fname:  # capture cancel in dialog
+            return
+        if not fname.endswith('.png'):
+            fname += ".png"
+        self.dxf_img.save(fname)
 
     def zoom_dxf(self, event):
         if self.dxf_loaded:
@@ -147,11 +157,9 @@ class MiniCAD(QtWidgets.QWidget):
                 self.dxf_img.y_lim = np.array([(self.dxf_img.y_lim[0] - event.ydata) * 1.2 + event.ydata,
                                                (self.dxf_img.y_lim[1] - event.ydata) * 1.2 + event.ydata])
             self.dxf_img.draw_dxf()
-        else:
-            self.logger.add_to_log('you are at ', event.xdata, event.ydata, 'and something went wrong')
 
     def dxf_mouse_released(self, event):
-        if any([event.xdata, event.ydata]):
+        if any([event.xdata, event.ydata]) and self.dxf_loaded:
             if event.button == 1:
                 x, y = event.xdata, event.ydata
                 if not self.nv_select_mode:
@@ -162,19 +170,9 @@ class MiniCAD(QtWidgets.QWidget):
                         self.point_buffer.push(all_coord_ctr[ds.index(min(ds))])
                         self.dxf_img.select_coord.append(all_coord_ctr[ds.index(min(ds))])
                         self.dxf_img.draw_dxf()
-                else:
-                    pass
             if event.button == 3 and not self.point_buffer.is_empty():
                 if not self.nv_select_mode:
                     x, y = self.point_buffer.pop()
                     self.dxf_img.select_coord.pop()
                     self.dxf_img.draw_dxf()
-                else:
-                    pass
 
-    def save_png(self):
-        fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', paths['registration'],
-                                                      "Portable network graphics (*.png)")[0]
-        if not fname.endswith('.png'):
-            fname += ".png"
-        self.dxf_img.save(fname)
