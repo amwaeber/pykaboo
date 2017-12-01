@@ -19,7 +19,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.screenShape = QtWidgets.QDesktopWidget().screenGeometry(-1)
         self.resize(self.screenShape.width()*2//3, self.screenShape.height()*2//3)
-        self.setWindowIcon(QtGui.QIcon(os.path.join(paths['images'], 'pykaboo.png')))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(paths['icons'], 'pykaboo.png')))
 
         self.mdi = QtWidgets.QMdiArea()  # create multiple document interface widget
         self.setCentralWidget(self.mdi)
@@ -63,6 +63,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.nvloc_widget.setWindowTitle("NV Localiser")
                 self.nvloc_widget.setObjectName('WIN_NVLOC')
                 self.mdi.addSubWindow(self.nvloc_widget)
+                self.nvloc_widget.resize(self.frameGeometry().height(), self.frameGeometry().height() * 2 // 3)
                 self.nvloc_widget.show()
 
             else:
@@ -80,6 +81,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.minicad_widget.setWindowTitle("MiniCAD")
                 self.minicad_widget.setObjectName('WIN_MiniCAD')
                 self.mdi.addSubWindow(self.minicad_widget)
+                self.minicad_widget.resize(self.frameGeometry().height() * 2 // 3, self.frameGeometry().height() * 2 // 3)
                 self.minicad_widget.show()
 
             else:

@@ -12,7 +12,7 @@ def write_config():
                          'progversion': '0.6.0'}
 
     config['paths'] = {'dxf': os.path.join(project_path, 'dxf'),
-                       'images': os.path.join(project_path, 'images'),
+                       'icons': os.path.join(project_path, 'icons'),
                        'registration': project_path}
 
     with open(config_path, 'w') as f:

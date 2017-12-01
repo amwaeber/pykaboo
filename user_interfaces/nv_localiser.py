@@ -1,7 +1,7 @@
 import os
 
 import numpy as np
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 from scipy import optimize as opt
 from scipy.interpolate import griddata
 
@@ -32,19 +32,20 @@ class NVLocaliser(QtWidgets.QWidget):
         self.local_menu.addAction("New *.dxf")
         self.local_menu.triggered[QtWidgets.QAction].connect(self.local_menu_windowaction)
 
-        self.setGeometry(300, 300, 300, 220)
         self.raw_img = ColorPlot(self, width=4, height=4, dpi=100)
         self.raw_img.mpl_connect('button_release_event', self.raw_mouse_released)
         self.dxf_img = ColorPlot(self, width=4, height=4, dpi=100)
         self.dxf_img.mpl_connect('scroll_event', self.zoom_dxf)
         self.dxf_img.mpl_connect('button_release_event', self.dxf_mouse_released)
 
-        self.bwd_btn = QtWidgets.QPushButton('<< Last', self)
+        self.bwd_btn = QtWidgets.QPushButton(self)
+        self.bwd_btn.setIcon(QtGui.QIcon(os.path.join(paths['icons'], 'back.png')))
         self.bwd_btn.setToolTip('Load previous image')
         self.bwd_btn.setObjectName('-1')
         self.bwd_btn.clicked.connect(self.file_crawl)
         self.bwd_btn.resize(self.bwd_btn.sizeHint())
-        self.fwd_btn = QtWidgets.QPushButton('Next >>', self)
+        self.fwd_btn = QtWidgets.QPushButton(self)
+        self.fwd_btn.setIcon(QtGui.QIcon(os.path.join(paths['icons'], 'forward.png')))
         self.fwd_btn.setToolTip('Load next image')
         self.fwd_btn.setObjectName('1')
         self.fwd_btn.clicked.connect(self.file_crawl)
@@ -66,15 +67,18 @@ class NVLocaliser(QtWidgets.QWidget):
         self.magnets_cb.addItems(
             ['mitsubishi5', 'windmill_5B1', 'mitsubishi5xp', 'mitsubishi5xm', 'mitsubishi5yp', 'mitsubishi5ym',
              'windmill5xp', 'windmill5xm', 'windmill5yp', 'windmill5ym'])
-        self.trafo_btn = QtWidgets.QPushButton('Transform', self)
+        self.trafo_btn = QtWidgets.QPushButton(self)
+        self.trafo_btn.setIcon(QtGui.QIcon(os.path.join(paths['icons'], 'transform.png')))
         self.trafo_btn.setToolTip('Transform raw image into coordinate system')
         self.trafo_btn.clicked.connect(self.trafo)
         self.trafo_btn.resize(self.trafo_btn.sizeHint())
-        self.save_dxf_btn = QtWidgets.QPushButton('Save dxf', self)
+        self.save_dxf_btn = QtWidgets.QPushButton(self)
+        self.save_dxf_btn.setIcon(QtGui.QIcon(os.path.join(paths['icons'], 'save.png')))
         self.save_dxf_btn.setToolTip('Add selection to dxf')
         self.save_dxf_btn.clicked.connect(self.save_dxf)
         self.save_dxf_btn.resize(self.save_dxf_btn.sizeHint())
-        self.save_png_btn = QtWidgets.QPushButton('Save png', self)
+        self.save_png_btn = QtWidgets.QPushButton(self)
+        self.save_png_btn.setIcon(QtGui.QIcon(os.path.join(paths['icons'], 'save_img.png')))
         self.save_png_btn.setToolTip('Save current view as image')
         self.save_png_btn.clicked.connect(self.save_png)
         self.save_png_btn.resize(self.save_png_btn.sizeHint())
