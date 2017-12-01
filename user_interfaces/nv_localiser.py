@@ -9,7 +9,7 @@ from helper_classes.dwg_xch_file import DwgXchFile
 from helper_classes.stack import Stack
 from plot_classes.color_plot import ColorPlot
 from utility.config import paths
-from utility.utility_functions import two_d_gaussian_sym, flatten_list, affine_trafo
+from utility.utility_functions import two_d_gaussian_sym, flatten_list, affine_trafo, distance
 
 
 # noinspection PyAttributeOutsideInit
@@ -338,18 +338,16 @@ class NVLocaliser(QtWidgets.QWidget):
     def dxf_mouse_released(self, event):
         if any([event.xdata, event.ydata]) and self.dxf_loaded:
             if event.button == 1:
-                x, y = event.xdata, event.ydata
+                coords = event.xdata, event.ydata
                 if not self.nv_select_mode:
-                    all_coord_ctr = [entity.center[:-1] for entity in
-                                     self.dxf_in.entities[1]]  # centres of coordinate points (list [1] in entities)
-                    ds = [np.sqrt((x - coord[0]) ** 2 + (y - coord[1]) ** 2) for coord in all_coord_ctr]
+                    all_coord_ctr = [entity.center[:-1] for entity in self.dxf_in.entities[1]]
+                    ds = [distance(ctr, coords)[0] for ctr in all_coord_ctr]
                     if min(ds) < 0.3:
                         self.dxf_buffer.push(all_coord_ctr[ds.index(min(ds))])
                         self.dxf_img.select_coord.append(all_coord_ctr[ds.index(min(ds))])
                         self.dxf_img.draw_dxf()
             if event.button == 3 and not self.dxf_buffer.is_empty():
                 if not self.nv_select_mode:
-                    x, y = self.dxf_buffer.pop()
                     self.dxf_img.select_coord.pop()
                     self.dxf_img.draw_dxf()
 

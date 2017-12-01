@@ -7,6 +7,7 @@ from helper_classes.dwg_xch_file import DwgXchFile
 from helper_classes.stack import Stack
 from plot_classes.color_plot import ColorPlot
 from utility.config import paths
+from utility.utility_functions import distance
 
 
 # noinspection PyAttributeOutsideInit
@@ -18,7 +19,7 @@ class MiniCAD(QtWidgets.QWidget):
         self.point_buffer = Stack()
 
         self.dxf_loaded = False
-        self.mode = -1  # object selection mode
+        self.active_tool = 'none'
 
         self.local_menu = self.parent().bar.addMenu("MiniCAD")
         self.local_menu.addAction("Load *.dxf")
@@ -39,17 +40,20 @@ class MiniCAD(QtWidgets.QWidget):
         self.color_mode_btn = QtWidgets.QPushButton(self)
         self.color_mode_btn.setIcon(QtGui.QIcon(os.path.join(paths['icons'], 'brush.png')))
         self.color_mode_btn.setToolTip('Assign color to selected object')
-        self.color_mode_btn.clicked.connect(lambda: self.set_mode('mark'))
+        self.color_mode_btn.setObjectName('mark')
+        self.color_mode_btn.clicked.connect(self.set_tool)
         self.color_mode_btn.resize(self.color_mode_btn.sizeHint())
         self.measure_mode_btn = QtWidgets.QPushButton(self)
         self.measure_mode_btn.setIcon(QtGui.QIcon(os.path.join(paths['icons'], 'ruler.png')))
         self.measure_mode_btn.setToolTip('measure distance between selected objects')
-        self.measure_mode_btn.clicked.connect(lambda: self.set_mode('measure'))
+        self.measure_mode_btn.setObjectName('measure')
+        self.measure_mode_btn.clicked.connect(self.set_tool)
         self.measure_mode_btn.resize(self.measure_mode_btn.sizeHint())
         self.label_mode_btn = QtWidgets.QPushButton(self)
         self.label_mode_btn.setIcon(QtGui.QIcon(os.path.join(paths['icons'], 'text.png')))
         self.label_mode_btn.setToolTip('Label selected object')
-        self.label_mode_btn.clicked.connect(lambda: self.set_mode('label'))
+        self.label_mode_btn.setObjectName('label')
+        self.label_mode_btn.clicked.connect(self.set_tool)
         self.label_mode_btn.resize(self.label_mode_btn.sizeHint())
         self.edt_text_label = QtWidgets.QLineEdit('00', self)
 
@@ -100,12 +104,12 @@ class MiniCAD(QtWidgets.QWidget):
         color = QtWidgets.QColorDialog.getColor()
         self.color_btn.setStyleSheet("background-color: %s" % color.name())
 
-    def set_mode(self, select_mode='none'):
-        modes = {'none': -1,
-                 'mark': 0,
-                 'measure': 1,
-                 'label': 2}
-        self.mode = modes[select_mode]
+    def set_tool(self):
+        tool_btn = self.sender()
+        self.active_tool = tool_btn.objectName()
+        self.point_buffer.empty()
+        self.dxf_img.select_coord = []
+        self.dxf_img.draw_dxf()
 
     def load_dxf(self, update=False):
         if not update:
@@ -161,18 +165,37 @@ class MiniCAD(QtWidgets.QWidget):
     def dxf_mouse_released(self, event):
         if any([event.xdata, event.ydata]) and self.dxf_loaded:
             if event.button == 1:
-                x, y = event.xdata, event.ydata
-                if not self.nv_select_mode:
-                    all_coord_ctr = [entity.center[:-1] for entity in
-                                     self.dxf_in.entities[1]]  # centres of coordinate points (list [1] in entities)
-                    ds = [np.sqrt((x - coord[0]) ** 2 + (y - coord[1]) ** 2) for coord in all_coord_ctr]
-                    if min(ds) < 0.3:
-                        self.point_buffer.push(all_coord_ctr[ds.index(min(ds))])
-                        self.dxf_img.select_coord.append(all_coord_ctr[ds.index(min(ds))])
-                        self.dxf_img.draw_dxf()
+                self.dxf_manipulate(coords=[event.xdata, event.ydata], action='do')
             if event.button == 3 and not self.point_buffer.is_empty():
-                if not self.nv_select_mode:
-                    x, y = self.point_buffer.pop()
-                    self.dxf_img.select_coord.pop()
-                    self.dxf_img.draw_dxf()
+                self.dxf_manipulate(coords=[event.xdata, event.ydata], action='undo')
 
+    def dxf_manipulate(self, coords=None, action=None):
+        if self.active_tool == 'mark':
+            if action == 'do':
+                pass
+        elif self.active_tool == 'measure':
+            if action == 'do':
+                all_coord_ctr = [entity.center[:-1] for entity in self.dxf_in.entities[1]]
+                ds = [distance(ctr, coords)[0] for ctr in all_coord_ctr]
+                if self.point_buffer.size() == 0:
+                    self.point_buffer.push(all_coord_ctr[ds.index(min(ds))])
+                    self.dxf_img.select_coord.append(all_coord_ctr[ds.index(min(ds))])
+                    self.dxf_img.draw_dxf()
+                elif self.point_buffer.size() == 1:
+                    self.point_buffer.push(all_coord_ctr[ds.index(min(ds))])
+                    self.dxf_img.select_coord.append(all_coord_ctr[ds.index(min(ds))])
+                    self.dxf_img.draw_dxf()
+                    dist = distance(self.point_buffer.pop(), self.point_buffer.pop())
+                    self.dxf_img.select_coord = []
+                    msg = ('Distance d = {0:.2f} um, dx = {1:.2f} um, dy = {2:.2f} um.'
+                           .format(dist[0], abs(dist[1][0]), abs(dist[1][1])))
+                    self.logger.add_to_log(msg)
+            elif action == 'undo':
+                self.point_buffer.pop()
+                self.dxf_img.select_coord.pop()
+                self.dxf_img.draw_dxf()
+        elif self.active_tool == 'label':
+            if action == 'do':
+                pass
+            elif action == 'undo':
+                pass

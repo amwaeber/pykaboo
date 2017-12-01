@@ -27,5 +27,10 @@ def affine_trafo(raw_coords, real_coords):
         return []
 
 
+def distance(point1, point2):
+    dp = np.array(point2)-np.array(point1)
+    return [np.linalg.norm(dp), dp]
+
+
 def flatten_list(lst):
     return [item for sublist in lst for item in sublist]
