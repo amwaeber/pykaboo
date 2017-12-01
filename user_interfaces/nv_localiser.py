@@ -121,31 +121,17 @@ class NVLocaliser(QtWidgets.QWidget):
         self.logger.add_to_log('Started NV Localiser.')
 
     def local_menu_windowaction(self, q):  # executes when file menu item selected
-
         if q.text() == "Load *.mat":
             self.load_raw()
-
         elif q.text() == "Load *.dxf":
-            fname = \
-                QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', paths['registration'],
-                                                      "Drawing interchange files (*.dxf)")[0]
-            self.load_dxf(fname)
-            self.logger.add_to_log('Loaded .dxf file ' + fname)
-
+            self.load_dxf()
         elif q.text() == "New *.dxf":
-            fname = os.path.join(paths['dxf'], 'coords_new.dxf')
-            self.load_dxf(fname)
-            self.logger.add_to_log('Created new .dxf file.')
-
-        else:
-            pass
+            self.load_dxf(new_dxf=True)
 
     def load_raw(self):
-        self.dir_name = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open folder',
-                                                                   paths['registration'])
-        if self.dir_name == '':
+        self.dir_name = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open folder', paths['registration'])
+        if not self.dir_name:  # capture cancel in dialog
             return
-
         self.dir_content = [f for f in os.listdir(self.dir_name) if
                             (f.startswith('scan') or f.startswith('field')) and f.endswith('.mat')]
         try:
@@ -292,7 +278,18 @@ class NVLocaliser(QtWidgets.QWidget):
         if len(self.dxf_img.cts_xy):
             self.dxf_img.draw_dxf()
 
-    def load_dxf(self, fname):
+    def load_dxf(self, update=False, new_dxf=False):
+        if not update and not new_dxf:
+            fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', paths['registration'],
+                                                          "Drawing interchange files (*.dxf)")[0]
+            if not fname:  # capture cancel in dialog
+                return
+            self.logger.add_to_log('Loaded .dxf file ' + fname)
+        elif not update and new_dxf:
+            fname = os.path.join(paths['dxf'], 'coords_new.dxf')
+            self.logger.add_to_log('Created new .dxf file.')
+        elif update and not new_dxf:
+            fname = self.dxf_in.location
         self.dxf_in = DwgXchFile()
         self.dxf_in.load(fname, ['ALIGN', 'COORD', 'MAGNET'], ['POLYLINE', 'CIRCLE', 'POLYLINE'])
         self.dxf_img.x_lim = np.array([0, 100])
@@ -307,23 +304,18 @@ class NVLocaliser(QtWidgets.QWidget):
             fname = \
                 QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', paths['registration'],
                                                       "Drawing interchange files (*.dxf)")[0]
-            if not fname.endswith('.dxf'):
+            if not fname:  # capture cancel in dialog
+                return
+            elif not fname.endswith('.dxf'):
                 fname += ".dxf"
         elif self.overwrite_cb.isChecked():
             fname = self.dxf_in.location
-        else:
-            self.logger.add_to_log('Checkbox isn\'t working.')
-            fname = \
-                QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', paths['registration'],
-                                                      "Drawing interchange files (*.dxf)")[0]
-            if not fname.endswith('.dxf'):
-                fname += ".dxf"
         self.dxf_in.save(fname)
         self.logger.add_to_log('Saved .dxf file.')
 
         self.dxf_img.select_nv = []
         self.dxf_buffer.empty()
-        self.load_dxf(fname)
+        self.load_dxf(update=True)
 
         self.raw_img.select_nv = []
         self.raw_buffer.empty()
@@ -342,11 +334,9 @@ class NVLocaliser(QtWidgets.QWidget):
                 self.dxf_img.y_lim = np.array([(self.dxf_img.y_lim[0] - event.ydata) * 1.2 + event.ydata,
                                                (self.dxf_img.y_lim[1] - event.ydata) * 1.2 + event.ydata])
             self.dxf_img.draw_dxf()
-        else:
-            pass
 
     def dxf_mouse_released(self, event):
-        if any([event.xdata, event.ydata]):
+        if any([event.xdata, event.ydata]) and self.dxf_loaded:
             if event.button == 1:
                 x, y = event.xdata, event.ydata
                 if not self.nv_select_mode:
@@ -357,19 +347,17 @@ class NVLocaliser(QtWidgets.QWidget):
                         self.dxf_buffer.push(all_coord_ctr[ds.index(min(ds))])
                         self.dxf_img.select_coord.append(all_coord_ctr[ds.index(min(ds))])
                         self.dxf_img.draw_dxf()
-                else:
-                    pass
             if event.button == 3 and not self.dxf_buffer.is_empty():
                 if not self.nv_select_mode:
                     x, y = self.dxf_buffer.pop()
                     self.dxf_img.select_coord.pop()
                     self.dxf_img.draw_dxf()
-                else:
-                    pass
 
     def save_png(self):
         fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', paths['registration'],
                                                       "Portable network graphics (*.png)")[0]
-        if not fname.endswith('.png'):
+        if not fname:  # capture cancel in dialog
+            return
+        elif not fname.endswith('.png'):
             fname += ".png"
         self.dxf_img.save(fname)

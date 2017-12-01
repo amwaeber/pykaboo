@@ -90,7 +90,7 @@ class MiniCAD(QtWidgets.QWidget):
 
     def local_menu_windowaction(self, q):  # executes when file menu item selected
         if q.text() == "Load *.dxf":
-            self.load_dxf(update=False)
+            self.load_dxf()
         elif q.text() == "Save *.dxf":
             self.save_dxf()
         elif q.text() == "Save *.png":
@@ -140,7 +140,7 @@ class MiniCAD(QtWidgets.QWidget):
                                                       "Portable network graphics (*.png)")[0]
         if not fname:  # capture cancel in dialog
             return
-        if not fname.endswith('.png'):
+        elif not fname.endswith('.png'):
             fname += ".png"
         self.dxf_img.save(fname)
 
