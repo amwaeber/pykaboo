@@ -8,8 +8,8 @@ def write_config():
 
     config = ConfigParser()
 
-    config['globals'] = {'progname': 'Pyk-A-Boo',
-                         'progversion': '0.5.2'}
+    config['globals'] = {'progname': 'Pykaboo',
+                         'progversion': '0.6.0'}
 
     config['paths'] = {'dxf': os.path.join(project_path, 'dxf'),
                        'images': os.path.join(project_path, 'images'),

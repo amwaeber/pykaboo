@@ -12,7 +12,7 @@ from utility.config import paths
 class MainWindow(QtWidgets.QMainWindow):
     count = 0  # number of opened windows
     nvloc_isopen = False  # status of NV Localiser widget
-    mincad_isopen = False  # status of MiniCAD widget
+    minicad_isopen = False  # status of MiniCAD widget
 
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -69,6 +69,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 pass
 
         elif q.text() == "MiniCAD":
+            print('abc')
             if not MainWindow.minicad_isopen:  # no minicad window yet
                 MainWindow.count = MainWindow.count + 1
                 MainWindow.minicad_isopen = True
