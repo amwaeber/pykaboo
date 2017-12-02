@@ -24,17 +24,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.bar = self.menuBar()
 
-        self.file_menu = self.bar.addMenu("File")
-        self.file_action_new = self.file_menu.addAction("New")
-        self.file_action_open = self.file_menu.addAction("Open")
-        self.file_action_open_temp = self.file_menu.addAction("Open Template")
-        self.file_action_save = self.file_menu.addAction("Save")
-        self.file_action_save_as = self.file_menu.addAction("Save as...")
-        self.file_action_import = self.file_menu.addAction("Import")
-        self.file_action_export = self.file_menu.addAction("Export")
-        # self.file_menu.removeAction(self.file_action_export)
-        self.file_menu.triggered[QtWidgets.QAction].connect(self.file_menuaction)
-
         self.draw_menu = self.bar.addMenu("Draw")
         self.draw_action_line = self.draw_menu.addAction("Line")
         self.draw_action_rectangle = self.draw_menu.addAction("Rectangle")
@@ -63,6 +52,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.image_action_trafo = self.image_menu.addAction("Transform")
         self.image_action_trafo.setDisabled(True)
         self.image_menu.triggered[QtWidgets.QAction].connect(self.image_menuaction)
+        # self.file_menu.removeAction(self.file_action_export)
 
         self.mdi = QtWidgets.QMdiArea()  # create multiple document interface widget
         self.setCentralWidget(self.mdi)
@@ -77,44 +67,74 @@ class MainWindow(QtWidgets.QMainWindow):
         self.log_widget.move(0, self.geometry().height()*3//4)
         self.log_widget.show()
 
+        new_dxf_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'new_dxf.png')), 'New dxf', self)
+        new_dxf_btn.triggered.connect(self.new_dxf)
+        open_dxf_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'open.png')), 'Open dxf', self)
+        open_dxf_btn.triggered.connect(self.open_dxf)
+        open_temp_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'open_template.png')),
+                                          'Open template', self)
+        open_temp_btn.triggered.connect(self.open_template)
+        save_dxf_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'save.png')), 'Save dxf', self)
+        save_dxf_btn.triggered.connect(self.save_dxf)
+        save_dxf_as_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'save_as.png')),
+                                            'Save dxf as...', self)
+        save_dxf_as_btn.triggered.connect(self.save_dxf_as)
+        import_mat_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'import.png')), 'Import mat', self)
+        import_mat_btn.triggered.connect(self.import_mat)
+        export_png_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'export.png')), 'Save png', self)
+        export_png_btn.triggered.connect(self.export_png)
+        self.toolbar = self.addToolBar("File")
+        self.toolbar.addAction(new_dxf_btn)
+        self.toolbar.addAction(open_dxf_btn)
+        self.toolbar.addAction(open_temp_btn)
+        self.toolbar.addAction(save_dxf_btn)
+        self.toolbar.addAction(save_dxf_as_btn)
+        self.toolbar.addAction(import_mat_btn)
+        self.toolbar.addAction(export_png_btn)
+
         self.show()
 
-    def file_menuaction(self, q):
-        if q.text() == "New":
-            self.cad = CADWidget(q.text(), 0, self.logger, self)
-            self.cad_widget = QtWidgets.QMdiSubWindow()
-            self.cad_widget.setWidget(self.cad)
-            self.cad_widget.setWindowTitle("CAD")
-            self.cad_widget.setObjectName('WIN_CAD')
-            self.mdi.addSubWindow(self.cad_widget)
-            self.cad_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
-            self.cad_widget.show()
-        elif q.text() == "Open":
-            self.cad = CADWidget(q.text(), 0, self.logger, self)
-            self.cad_widget = QtWidgets.QMdiSubWindow()
-            self.cad_widget.setWidget(self.cad)
-            self.cad_widget.setWindowTitle("CAD")
-            self.cad_widget.setObjectName('WIN_CAD')
-            self.mdi.addSubWindow(self.cad_widget)
-            self.cad_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
-            self.cad_widget.show()
-        elif q.text() == "Open Template":
-            self.cad = CADWidget(q.text(), 0, self.logger, self)
-            self.cad_widget = QtWidgets.QMdiSubWindow()
-            self.cad_widget.setWidget(self.cad)
-            self.cad_widget.setWindowTitle("CAD")
-            self.cad_widget.setObjectName('WIN_CAD')
-            self.mdi.addSubWindow(self.cad_widget)
-            self.cad_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
-            self.cad_widget.show()
-        elif q.text() == "Save":
-            pass
-        elif q.text() == "Save as...":
-            pass
-        elif q.text() == "Import":
-            pass
-        elif q.text() == "Export":
-            pass
+    def new_dxf(self):
+        self.cad = CADWidget("New", 0, self.logger, self)
+        self.cad_widget = QtWidgets.QMdiSubWindow()
+        self.cad_widget.setWidget(self.cad)
+        self.cad_widget.setWindowTitle("CAD")
+        self.cad_widget.setObjectName('WIN_CAD')
+        self.mdi.addSubWindow(self.cad_widget)
+        self.cad_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
+        self.cad_widget.show()
+
+    def open_dxf(self):
+        self.cad = CADWidget("Open", 0, self.logger, self)
+        self.cad_widget = QtWidgets.QMdiSubWindow()
+        self.cad_widget.setWidget(self.cad)
+        self.cad_widget.setWindowTitle("CAD")
+        self.cad_widget.setObjectName('WIN_CAD')
+        self.mdi.addSubWindow(self.cad_widget)
+        self.cad_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
+        self.cad_widget.show()
+
+    def open_template(self):
+        self.cad = CADWidget("Open Template", 0, self.logger, self)
+        self.cad_widget = QtWidgets.QMdiSubWindow()
+        self.cad_widget.setWidget(self.cad)
+        self.cad_widget.setWindowTitle("CAD")
+        self.cad_widget.setObjectName('WIN_CAD')
+        self.mdi.addSubWindow(self.cad_widget)
+        self.cad_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
+        self.cad_widget.show()
+
+    def save_dxf(self):
+        pass
+
+    def save_dxf_as(self):
+        pass
+
+    def import_mat(self):
+        pass
+
+    def export_png(self):
+        pass
 
     def draw_menuaction(self, q):  # executes when file menu item selected
         if q.text() == "Line":
