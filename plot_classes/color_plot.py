@@ -16,6 +16,8 @@ class ColorPlot(MyMplCanvas):
 
     def compute_initial_figure(self):
         self.plot_limits = [[0, 10], [0, 10]]
+        self.dxf = None
+        self.img = None
         self.axes.cla()
 
     def draw_dxf(self, dxf_file):
@@ -35,13 +37,15 @@ class ColorPlot(MyMplCanvas):
             for patch in dxf_objects:
                 self.axes.add_patch(patch)
 
-    def draw_canvas(self, dxf=None, img=None, **kwargs):
+    def draw_canvas(self, **kwargs):
         self.plot_limits = kwargs.get('plot_limits', self.plot_limits)
+        self.dxf = kwargs.get('dxf', self.dxf)
+        self.img = kwargs.get('img', self.img)
         self.axes.cla()
         self.axes.set_xlim(self.plot_limits[0][0], self.plot_limits[0][1])
         self.axes.set_ylim(self.plot_limits[1][0], self.plot_limits[1][1])
-        if dxf:
-            self.draw_dxf(dxf)
+        if self.dxf:
+            self.draw_dxf(self.dxf)
         self.draw()
 
     def load_mat(self, filename):
