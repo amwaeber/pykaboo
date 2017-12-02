@@ -2,6 +2,7 @@ import os
 from PyQt5 import QtWidgets, QtGui
 
 from user_interfaces.logger import Logger
+from user_interfaces.cad_widget import CADWidget
 from utility.config import global_confs
 from utility.config import paths
 
@@ -80,11 +81,32 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def file_menuaction(self, q):
         if q.text() == "New":
-            pass
+            self.cad = CADWidget(q.text(), 0, self.logger, self)
+            self.cad_widget = QtWidgets.QMdiSubWindow()
+            self.cad_widget.setWidget(self.cad)
+            self.cad_widget.setWindowTitle("CAD")
+            self.cad_widget.setObjectName('WIN_CAD')
+            self.mdi.addSubWindow(self.cad_widget)
+            self.cad_widget.resize(self.frameGeometry().width(), self.frameGeometry().height() * 3 // 4)
+            self.cad_widget.show()
         elif q.text() == "Open":
-            pass
+            self.cad = CADWidget(q.text(), 0, self.logger, self)
+            self.cad_widget = QtWidgets.QMdiSubWindow()
+            self.cad_widget.setWidget(self.cad)
+            self.cad_widget.setWindowTitle("CAD")
+            self.cad_widget.setObjectName('WIN_CAD')
+            self.mdi.addSubWindow(self.cad_widget)
+            self.cad_widget.resize(self.frameGeometry().width(), self.frameGeometry().height() * 3 // 4)
+            self.cad_widget.show()
         elif q.text() == "Open Template":
-            pass
+            self.cad = CADWidget(q.text(), 0, self.logger, self)
+            self.cad_widget = QtWidgets.QMdiSubWindow()
+            self.cad_widget.setWidget(self.cad)
+            self.cad_widget.setWindowTitle("CAD")
+            self.cad_widget.setObjectName('WIN_CAD')
+            self.mdi.addSubWindow(self.cad_widget)
+            self.cad_widget.resize(self.frameGeometry().width(), self.frameGeometry().height() * 3 // 4)
+            self.cad_widget.show()
         elif q.text() == "Save":
             pass
         elif q.text() == "Save as...":

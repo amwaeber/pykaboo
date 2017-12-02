@@ -7,7 +7,6 @@ from utility import tum_jet
 
 # noinspection PyAttributeOutsideInit
 class ColorPlot(MyMplCanvas):
-    """A canvas that updates itself every second with a new plot."""
 
     def __init__(self, *args, **kwargs):
         MyMplCanvas.__init__(self, *args, **kwargs)
