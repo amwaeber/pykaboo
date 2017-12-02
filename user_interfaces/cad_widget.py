@@ -20,11 +20,17 @@ class CADWidget(QtWidgets.QWidget):
 
         if action == "New":
             self.dxf_file = DwgXchFile()
-            self.canvas.update(dxf=self.dxf_file)
+            self.canvas.draw_canvas(dxf=self.dxf_file)
             self.logger.add_to_log("New dxf.")
         elif action == "Open":
+            self.dxf_file = DwgXchFile()
+            self.dxf_file.load(self, file_type='standard')
+            self.canvas.draw_canvas(dxf=self.dxf_file)
             self.logger.add_to_log("Open dxf.")
         elif action == "Open Template":
+            self.dxf_file = DwgXchFile()
+            self.dxf_file.load(self, file_type='template')
+            self.canvas.draw_canvas(dxf=self.dxf_file)
             self.logger.add_to_log("Open Template.")
 
     def mouse_wheel(self, event):

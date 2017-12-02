@@ -11,7 +11,8 @@ def write_config():
     config['globals'] = {'progname': 'Pykaboo',
                          'progversion': '0.6.0'}
 
-    config['paths'] = {'dxf': os.path.join(project_path, 'dxf'),
+    config['paths'] = {'stencils': os.path.join(project_path, 'dxf/stencils'),
+                       'templates': os.path.join(project_path, 'dxf/templates'),
                        'icons': os.path.join(project_path, 'icons'),
                        'registration': project_path}
 

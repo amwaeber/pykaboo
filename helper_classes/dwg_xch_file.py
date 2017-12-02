@@ -14,14 +14,21 @@ class DwgXchFile:
         self.file_name = ''
         self.drawing = dxfgrabber.read(io.StringIO())
 
-    def load(self):
-        self.file_name = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', paths['registration'],
-                                                               "Drawing interchange files (*.dxf)")[0]
+    def load(self, parent, file_type='standard'):
+        if file_type == 'standard':
+            self.file_name = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['registration'],
+                                                                   "Drawing interchange files (*.dxf)")[0]
+        elif file_type == 'template':
+            self.file_name = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['templates'],
+                                                                   "Drawing interchange files (*.dxf)")[0]
+        elif file_type == 'stencil':
+            self.file_name = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['stencils'],
+                                                                   "Drawing interchange files (*.dxf)")[0]
         self.drawing = dxfgrabber.readfile(self.file_name)
 
-    def save(self, overwrite=True):
+    def save(self, parent, overwrite=True):
         if not overwrite:
-            self.file_name = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', paths['registration'],
+            self.file_name = QtWidgets.QFileDialog.getSaveFileName(parent, 'Save File', paths['registration'],
                                                                    "Drawing interchange files (*.dxf)")[0]
         save_drawing = dxf.drawing(self.file_name)
         for l in self.drawing.layers:
