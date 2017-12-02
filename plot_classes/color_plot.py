@@ -14,7 +14,7 @@ class ColorPlot(MyMplCanvas):
         MyMplCanvas.__init__(self, *args, **kwargs)
 
     def compute_initial_figure(self):
-        self.max_size = [1000, 1000]
+        self.max_size = [10, 10]
         self.clear_bg()
         self.plot_limits = [[0, 10], [0, 10]]
 
@@ -34,8 +34,8 @@ class ColorPlot(MyMplCanvas):
 
     def clear_bg(self):
         self.axes.cla()
-        self.axes.imshow(np.zeros((200, 200)), extent=(-self.max_size[0], self.max_size[0], -self.max_size[1],
-                                                       self.max_size[1]), cmap='binary', vmin=0, vmax=1)
+        self.axes.imshow(np.zeros((5, 5)), extent=(-self.max_size[0], self.max_size[0], -self.max_size[1],
+                                                       self.max_size[1]), cmap='binary', vmin=0, vmax=100)
 
     def draw_dxf(self, dxf_file):
         dxf_objects = []
@@ -53,6 +53,18 @@ class ColorPlot(MyMplCanvas):
         if len(dxf_objects):
             for patch in dxf_objects:
                 self.axes.add_patch(patch)
+        #self.axes.set_xlim(self.plot_limits[0][0], self.plot_limits[0][1])
+        #self.axes.set_ylim(self.plot_limits[1][0], self.plot_limits[1][1])
+        #self.draw()
+
+    def update(self, dxf=None, img=None):
+        if not img:
+            self.clear_bg()
+            self.axes.set_xlim(self.plot_limits[0][0], self.plot_limits[0][1])
+            self.axes.set_ylim(self.plot_limits[1][0], self.plot_limits[1][1])
+        # if dxf:
+        #     self.draw_dxf(dxf)
+        # self.draw()
 
     def load_mat(self, filename):
         self.graph = scipy.io.loadmat(filename)
@@ -71,23 +83,23 @@ class ColorPlot(MyMplCanvas):
                          vmin=self.cts_vmin, vmax=self.cts_vmax)
         self.draw()
 
-    def draw_dxf(self):
-        self.axes.cla()
-        if len(self.cts_xy):
-            self.axes.imshow(self.cts_xy, extent=(self.x_axis[0], self.x_axis[-1], self.y_axis[0], self.y_axis[-1]),
-                             cmap=tum_jet.tum_jet, vmin=self.cts_vmin, vmax=self.cts_vmax)
-        if len(self.dxf_objects):
-            for patch in self.dxf_objects:
-                self.axes.add_patch(patch)
-        if len(self.select_coord):
-            self.axes.plot([pt[0] for pt in self.select_coord], [pt[1] for pt in self.select_coord], ls='None',
-                           marker='o', markerfacecolor='None', markeredgecolor='r')
-        if len(self.select_nv):
-            for patch in self.select_nv:
-                self.axes.add_patch(patch)
-        self.axes.set_xlim(self.x_lim[0], self.x_lim[-1])
-        self.axes.set_ylim(self.y_lim[0], self.y_lim[-1])
-        self.draw()
+    # def draw_dxf(self):
+    #     self.axes.cla()
+    #     if len(self.cts_xy):
+    #         self.axes.imshow(self.cts_xy, extent=(self.x_axis[0], self.x_axis[-1], self.y_axis[0], self.y_axis[-1]),
+    #                          cmap=tum_jet.tum_jet, vmin=self.cts_vmin, vmax=self.cts_vmax)
+    #     if len(self.dxf_objects):
+    #         for patch in self.dxf_objects:
+    #             self.axes.add_patch(patch)
+    #     if len(self.select_coord):
+    #         self.axes.plot([pt[0] for pt in self.select_coord], [pt[1] for pt in self.select_coord], ls='None',
+    #                        marker='o', markerfacecolor='None', markeredgecolor='r')
+    #     if len(self.select_nv):
+    #         for patch in self.select_nv:
+    #             self.axes.add_patch(patch)
+    #     self.axes.set_xlim(self.x_lim[0], self.x_lim[-1])
+    #     self.axes.set_ylim(self.y_lim[0], self.y_lim[-1])
+    #     self.draw()
 
     def redraw(self, **kwargs):
         self.cts_vmin = kwargs.get('cts_vmin', self.cts_vmin)

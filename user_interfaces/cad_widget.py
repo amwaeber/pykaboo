@@ -20,7 +20,7 @@ class CADWidget(QtWidgets.QWidget):
 
         if action == "New":
             self.dxf_file = DwgXchFile()
-            self.canvas.draw_dxf(self.dxf_file)
+            self.canvas.update(dxf=self.dxf_file)
             self.logger.add_to_log("New dxf.")
         elif action == "Open":
             self.logger.add_to_log("Open dxf.")
