@@ -87,7 +87,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.cad_widget.setWindowTitle("CAD")
             self.cad_widget.setObjectName('WIN_CAD')
             self.mdi.addSubWindow(self.cad_widget)
-            self.cad_widget.resize(self.frameGeometry().width(), self.frameGeometry().height() * 3 // 4)
+            self.cad_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
             self.cad_widget.show()
         elif q.text() == "Open":
             self.cad = CADWidget(q.text(), 0, self.logger, self)
@@ -96,7 +96,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.cad_widget.setWindowTitle("CAD")
             self.cad_widget.setObjectName('WIN_CAD')
             self.mdi.addSubWindow(self.cad_widget)
-            self.cad_widget.resize(self.frameGeometry().width(), self.frameGeometry().height() * 3 // 4)
+            self.cad_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
             self.cad_widget.show()
         elif q.text() == "Open Template":
             self.cad = CADWidget(q.text(), 0, self.logger, self)
@@ -105,7 +105,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.cad_widget.setWindowTitle("CAD")
             self.cad_widget.setObjectName('WIN_CAD')
             self.mdi.addSubWindow(self.cad_widget)
-            self.cad_widget.resize(self.frameGeometry().width(), self.frameGeometry().height() * 3 // 4)
+            self.cad_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
             self.cad_widget.show()
         elif q.text() == "Save":
             pass
