@@ -2,42 +2,69 @@ import os
 from PyQt5 import QtWidgets, QtGui
 
 from user_interfaces.logger import Logger
-from user_interfaces.nv_localiser import NVLocaliser
-from user_interfaces.minicad import MiniCAD
 from utility.config import global_confs
 from utility.config import paths
 
 
 # noinspection PyAttributeOutsideInit
+# noinspection PyArgumentList
 class MainWindow(QtWidgets.QMainWindow):
-    count = 0  # number of opened windows
-    nvloc_isopen = False  # status of NV Localiser widget
-    minicad_isopen = False  # status of MiniCAD widget
 
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
+        self.init_ui()
 
-        self.screenShape = QtWidgets.QDesktopWidget().screenGeometry(-1)
-        self.resize(self.screenShape.width()*2//3, self.screenShape.height()*2//3)
+    def init_ui(self):
+
+        self.resize(800, 600)
+        self.showMaximized()
         self.setWindowIcon(QtGui.QIcon(os.path.join(paths['icons'], 'pykaboo.png')))
-
-        self.mdi = QtWidgets.QMdiArea()  # create multiple document interface widget
-        self.setCentralWidget(self.mdi)
+        self.setWindowTitle("%s %s" % (global_confs['progname'], global_confs['progversion']))
 
         self.bar = self.menuBar()
 
-        task = self.bar.addMenu("Task")  # menu with different tasks (fitting, finding NVs,...)
-        task.addAction("NV Localiser")
-        task.addAction("MiniCAD")
-        task.triggered[QtWidgets.QAction].connect(self.task_windowaction)
+        self.file_menu = self.bar.addMenu("File")
+        self.file_action_new = self.file_menu.addAction("New")
+        self.file_action_open = self.file_menu.addAction("Open")
+        self.file_action_open_temp = self.file_menu.addAction("Open Template")
+        self.file_action_save = self.file_menu.addAction("Save")
+        self.file_action_save_as = self.file_menu.addAction("Save as...")
+        self.file_action_import = self.file_menu.addAction("Import")
+        self.file_action_export = self.file_menu.addAction("Export")
+        # self.file_menu.removeAction(self.file_action_export)
+        self.file_menu.triggered[QtWidgets.QAction].connect(self.file_menuaction)
 
-        file = self.bar.addMenu("File")  # menu with file tasks (open, load, close, new,...) Currently dummy
-        file.addAction("New")
-        file.addAction("Cascade")
-        file.addAction("Tiled")
-        file.triggered[QtWidgets.QAction].connect(self.file_windowaction)
+        self.draw_menu = self.bar.addMenu("Draw")
+        self.draw_action_line = self.draw_menu.addAction("Line")
+        self.draw_action_rectangle = self.draw_menu.addAction("Rectangle")
+        self.draw_action_circle = self.draw_menu.addAction("Circle")
+        self.draw_action_polyline = self.draw_menu.addAction("Polyline")
+        self.draw_action_stencil = self.draw_menu.addAction("Stencil")
+        self.draw_menu.triggered[QtWidgets.QAction].connect(self.draw_menuaction)
 
-        self.setWindowTitle("%s %s" % (global_confs['progname'], global_confs['progversion']))
+        self.props_menu = self.bar.addMenu("Properties")
+        self.props_action_layer = self.props_menu.addAction("Layer")
+        self.props_action_block = self.props_menu.addAction("Block")
+        self.props_action_color = self.props_menu.addAction("Color")
+        self.props_menu.triggered[QtWidgets.QAction].connect(self.props_menuaction)
+
+        self.view_menu = self.bar.addMenu("View")
+        self.view_action_objects = self.view_menu.addAction("View Objects")
+        self.view_action_layers = self.view_menu.addAction("View Layers")
+        self.view_action_blocks = self.view_menu.addAction("View Blocks")
+        self.view_action_grid = self.view_menu.addAction("Show Grid")
+        self.view_action_measure = self.view_menu.addAction("Measure")
+        self.view_menu.triggered[QtWidgets.QAction].connect(self.view_menuaction)
+
+        self.image_menu = self.bar.addMenu("Image")
+        self.image_action_minmax = self.image_menu.addAction("Set Min/Max")
+        self.image_action_minmax.setDisabled(True)
+        self.image_action_trafo = self.image_menu.addAction("Transform")
+        self.image_action_trafo.setDisabled(True)
+        self.image_menu.triggered[QtWidgets.QAction].connect(self.image_menuaction)
+
+        self.mdi = QtWidgets.QMdiArea()  # create multiple document interface widget
+        self.setCentralWidget(self.mdi)
 
         self.logger = Logger(self)
         self.log_widget = QtWidgets.QMdiSubWindow()
@@ -49,63 +76,58 @@ class MainWindow(QtWidgets.QMainWindow):
         self.log_widget.move(0, self.geometry().height()*3//4)
         self.log_widget.show()
 
+        self.show()
 
-    def task_windowaction(self, q):  # executes when task menu item selected
-
-        if q.text() == "NV Localiser":
-            if not MainWindow.nvloc_isopen:  # no nvloc window yet
-                MainWindow.count = MainWindow.count + 2
-                MainWindow.nvloc_isopen = True
-
-                self.nv_localiser = NVLocaliser(self.logger, self)
-                self.nvloc_widget = QtWidgets.QMdiSubWindow()
-                self.nvloc_widget.setWidget(self.nv_localiser)
-                self.nvloc_widget.setWindowTitle("NV Localiser")
-                self.nvloc_widget.setObjectName('WIN_NVLOC')
-                self.mdi.addSubWindow(self.nvloc_widget)
-                self.nvloc_widget.resize(self.frameGeometry().height(), self.frameGeometry().height() * 2 // 3)
-                self.nvloc_widget.show()
-
-            else:
-                pass
-
-        elif q.text() == "MiniCAD":
-            print('abc')
-            if not MainWindow.minicad_isopen:  # no minicad window yet
-                MainWindow.count = MainWindow.count + 1
-                MainWindow.minicad_isopen = True
-
-                self.minicad = MiniCAD(self.logger, self)
-                self.minicad_widget = QtWidgets.QMdiSubWindow()
-                self.minicad_widget.setWidget(self.minicad)
-                self.minicad_widget.setWindowTitle("MiniCAD")
-                self.minicad_widget.setObjectName('WIN_MiniCAD')
-                self.mdi.addSubWindow(self.minicad_widget)
-                self.minicad_widget.resize(self.frameGeometry().height() * 2 // 3, self.frameGeometry().height() * 2 // 3)
-                self.minicad_widget.show()
-
-            else:
-                pass
-
-        else:
-            pass
-
-    def file_windowaction(self, q):  # executes when file menu item selected
-
+    def file_menuaction(self, q):
         if q.text() == "New":
-            MainWindow.count = MainWindow.count + 1
-            sub = QtWidgets.QMdiSubWindow()
-            sub.setWidget(QtWidgets.QTextEdit())
-            sub.setWindowTitle("subwindow" + str(MainWindow.count))
-            self.mdi.addSubWindow(sub)
-            sub.show()
-
-        elif q.text() == "Cascade":
-            self.mdi.cascadeSubWindows()
-
-        elif q.text() == "Tiled":
-            self.mdi.tileSubWindows()
-
-        else:
+            pass
+        elif q.text() == "Open":
+            pass
+        elif q.text() == "Open Template":
+            pass
+        elif q.text() == "Save":
+            pass
+        elif q.text() == "Save as...":
+            pass
+        elif q.text() == "Import":
+            pass
+        elif q.text() == "Export":
             pass
 
+    def draw_menuaction(self, q):  # executes when file menu item selected
+        if q.text() == "Line":
+            pass
+        elif q.text() == "Rectangle":
+            pass
+        elif q.text() == "Circle":
+            pass
+        elif q.text() == "Polyline":
+            pass
+        elif q.text() == "Stencil":
+            pass
+
+    def props_menuaction(self, q):  # executes when file menu item selected
+        if q.text() == "Layer":
+            pass
+        elif q.text() == "Block":
+            pass
+        elif q.text() == "Color":
+            pass
+
+    def view_menuaction(self, q):  # executes when file menu item selected
+        if q.text() == "View Objects":
+            pass
+        elif q.text() == "View Layers":
+            pass
+        elif q.text() == "View Blocks":
+            pass
+        elif q.text() == "Show Grid":
+            pass
+        elif q.text() == "Measure":
+            pass
+
+    def image_menuaction(self, q):  # executes when file menu item selected
+        if q.text() == "Set Min/Max":
+            pass
+        elif q.text() == "Transform":
+            pass

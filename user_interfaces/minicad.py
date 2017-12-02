@@ -177,6 +177,10 @@ class MiniCAD(QtWidgets.QWidget):
             if action == 'do':
                 all_coord_ctr = [entity.center[:-1] for entity in self.dxf_in.entities[1]]
                 ds = [distance(ctr, coords)[0] for ctr in all_coord_ctr]
+                all_magnet_ctr = [min([distance([pt[0], pt[1]], coords)[0] for pt in entity.points])
+                                  for entity in self.dxf_in.entities[2]]
+                all_mag_prox = [min_dist <= 1.5 for min_dist in all_magnet_ctr]
+                ds = [distance(ctr, coords)[0] for ctr in all_coord_ctr]
                 if self.point_buffer.size() == 0:
                     self.point_buffer.push(all_coord_ctr[ds.index(min(ds))])
                     self.dxf_img.select_coord.append(all_coord_ctr[ds.index(min(ds))])
