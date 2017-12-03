@@ -12,24 +12,33 @@ from utility.config import paths
 class DwgXchFile:
     def __init__(self):
         self.file_name = ''
+        self.file_type = 'standard'
         self.drawing = dxfgrabber.read(io.StringIO())
 
     def load(self, parent, file_type='standard'):
-        if file_type == 'standard':
-            self.file_name = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['registration'],
+        self.file_type = file_type
+        if self.file_type == 'standard':
+            fname = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['registration'],
                                                                    "Drawing interchange files (*.dxf)")[0]
-        elif file_type == 'template':
-            self.file_name = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['templates'],
+        elif self.file_type == 'template':
+            fname = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['templates'],
                                                                    "Drawing interchange files (*.dxf)")[0]
-        elif file_type == 'stencil':
-            self.file_name = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['stencils'],
+        elif self.file_type == 'stencil':
+            fname = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['stencils'],
                                                                    "Drawing interchange files (*.dxf)")[0]
+        if not fname:  # capture cancel in dialog
+            return
+        self.file_name = fname
         self.drawing = dxfgrabber.readfile(self.file_name)
 
     def save(self, parent, overwrite=True):
-        if not overwrite:
-            self.file_name = QtWidgets.QFileDialog.getSaveFileName(parent, 'Save File', paths['registration'],
+        if any([not overwrite, not self.file_name, not self.file_type == 'standard']):
+            fname = QtWidgets.QFileDialog.getSaveFileName(parent, 'Save File', paths['registration'],
                                                                    "Drawing interchange files (*.dxf)")[0]
+            if not fname:  # capture cancel in dialog
+                return
+            self.file_name = fname
+            self.file_type = 'standard'
         save_drawing = dxf.drawing(self.file_name)
         for l in self.drawing.layers:
             save_drawing.add_layer(name=l.name, color=l.color, linetype=l.linetype)

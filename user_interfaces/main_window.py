@@ -95,10 +95,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def save_dxf(self):
         active_widget = self.mdi.activeSubWindow().widget()
         if isinstance(active_widget, CADWidget):
-            print('Yes.')
-        else:
-            print('No.')
-        # pass
+            active_widget.dxf_file.save(active_widget, overwrite=True)
 
     def save_dxf_as(self):
         active_widget = self.mdi.activeSubWindow().widget()
