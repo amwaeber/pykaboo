@@ -9,7 +9,7 @@ def write_config():
     config = ConfigParser()
 
     config['globals'] = {'progname': 'Pykaboo',
-                         'progversion': '0.6.0'}
+                         'progversion': '0.6.1'}
 
     config['paths'] = {'stencils': os.path.join(project_path, 'dxf/stencils'),
                        'templates': os.path.join(project_path, 'dxf/templates'),

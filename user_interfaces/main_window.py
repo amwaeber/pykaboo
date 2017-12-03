@@ -22,38 +22,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon(os.path.join(paths['icons'], 'pykaboo.png')))
         self.setWindowTitle("%s %s" % (global_confs['progname'], global_confs['progversion']))
 
-        self.bar = self.menuBar()
-
-        self.draw_menu = self.bar.addMenu("Draw")
-        self.draw_action_line = self.draw_menu.addAction("Line")
-        self.draw_action_rectangle = self.draw_menu.addAction("Rectangle")
-        self.draw_action_circle = self.draw_menu.addAction("Circle")
-        self.draw_action_polyline = self.draw_menu.addAction("Polyline")
-        self.draw_action_stencil = self.draw_menu.addAction("Stencil")
-        self.draw_menu.triggered[QtWidgets.QAction].connect(self.draw_menuaction)
-
-        self.props_menu = self.bar.addMenu("Properties")
-        self.props_action_layer = self.props_menu.addAction("Layer")
-        self.props_action_block = self.props_menu.addAction("Block")
-        self.props_action_color = self.props_menu.addAction("Color")
-        self.props_menu.triggered[QtWidgets.QAction].connect(self.props_menuaction)
-
-        self.view_menu = self.bar.addMenu("View")
-        self.view_action_objects = self.view_menu.addAction("View Objects")
-        self.view_action_layers = self.view_menu.addAction("View Layers")
-        self.view_action_blocks = self.view_menu.addAction("View Blocks")
-        self.view_action_grid = self.view_menu.addAction("Show Grid")
-        self.view_action_measure = self.view_menu.addAction("Measure")
-        self.view_menu.triggered[QtWidgets.QAction].connect(self.view_menuaction)
-
-        self.image_menu = self.bar.addMenu("Image")
-        self.image_action_minmax = self.image_menu.addAction("Set Min/Max")
-        self.image_action_minmax.setDisabled(True)
-        self.image_action_trafo = self.image_menu.addAction("Transform")
-        self.image_action_trafo.setDisabled(True)
-        self.image_menu.triggered[QtWidgets.QAction].connect(self.image_menuaction)
-        # self.file_menu.removeAction(self.file_action_export)
-
         self.mdi = QtWidgets.QMdiArea()  # create multiple document interface widget
         self.setCentralWidget(self.mdi)
 
@@ -135,41 +103,3 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def export_png(self):
         pass
-
-    def draw_menuaction(self, q):  # executes when file menu item selected
-        if q.text() == "Line":
-            pass
-        elif q.text() == "Rectangle":
-            pass
-        elif q.text() == "Circle":
-            pass
-        elif q.text() == "Polyline":
-            pass
-        elif q.text() == "Stencil":
-            pass
-
-    def props_menuaction(self, q):  # executes when file menu item selected
-        if q.text() == "Layer":
-            pass
-        elif q.text() == "Block":
-            pass
-        elif q.text() == "Color":
-            pass
-
-    def view_menuaction(self, q):  # executes when file menu item selected
-        if q.text() == "View Objects":
-            pass
-        elif q.text() == "View Layers":
-            pass
-        elif q.text() == "View Blocks":
-            pass
-        elif q.text() == "Show Grid":
-            pass
-        elif q.text() == "Measure":
-            pass
-
-    def image_menuaction(self, q):  # executes when file menu item selected
-        if q.text() == "Set Min/Max":
-            pass
-        elif q.text() == "Transform":
-            pass
