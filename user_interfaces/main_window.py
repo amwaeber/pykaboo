@@ -93,10 +93,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.cad_widget.show()
 
     def save_dxf(self):
-        pass
+        active_widget = self.mdi.activeSubWindow().widget()
+        if isinstance(active_widget, CADWidget):
+            print('Yes.')
+        else:
+            print('No.')
+        # pass
 
     def save_dxf_as(self):
-        pass
+        active_widget = self.mdi.activeSubWindow().widget()
+        if isinstance(active_widget, CADWidget):
+            active_widget.dxf_file.save(active_widget, overwrite=False)
 
     def import_mat(self):
         pass
