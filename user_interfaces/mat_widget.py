@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets, QtGui
 
 from plot_classes.color_plot import ColorPlot
 from helper_classes.mat_file import MatFile
+from user_interfaces.minmax_dialog import MinMaxDialog
 from utility.config import paths
 
 
@@ -27,11 +28,16 @@ class MatWidget(QtWidgets.QWidget):
         open_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'open.png')),
                                      'Open mat', self)
         open_btn.triggered.connect(self.file_open)
+        minmax_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'minmax.png')),
+                                       'Set minimum and maximum counts', self)
+        minmax_btn.triggered.connect(self.set_minmax)
 
         self.toolbar = QtWidgets.QToolBar("Image")
         self.toolbar.addAction(back_btn)
         self.toolbar.addAction(forward_btn)
         self.toolbar.addAction(open_btn)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(minmax_btn)
 
         self.canvas = ColorPlot(self)
         self.canvas.mpl_connect('button_release_event', self.mouse_released)
@@ -69,6 +75,11 @@ class MatWidget(QtWidgets.QWidget):
         self.mat_file.load(self, dialog=True)
         self.canvas.draw_canvas(mat=self.mat_file)
         self.logger.add_to_log("Loaded file " + self.mat_file.file_name)
+
+    def set_minmax(self):
+        self.canvas.count_limits_fixed = True
+        self.canvas.count_limits = MinMaxDialog(self.canvas.count_limits, self).exec_()
+        self.canvas.draw_canvas()
 
     def mouse_released(self, event):
         pass
