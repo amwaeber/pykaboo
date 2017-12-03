@@ -2,6 +2,7 @@ import os
 from PyQt5 import QtWidgets, QtGui
 
 from plot_classes.color_plot import ColorPlot
+from helper_classes.mat_file import MatFile
 from utility.config import paths
 
 
@@ -38,6 +39,9 @@ class MatWidget(QtWidgets.QWidget):
         vbox.addWidget(self.canvas)
         self.setLayout(vbox)
 
+        self.mat_file = MatFile()
+        self.mat_file.load(self)
+        self.canvas.draw_canvas(mat=self.mat_file)
         self.logger.add_to_log("New image.")
 
     def file_back(self):
