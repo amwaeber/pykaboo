@@ -15,13 +15,16 @@ class ColorPlot(MyMplCanvas):
         MyMplCanvas.__init__(self, *args, **kwargs)
 
     def compute_initial_figure(self):
-        self.plot_limits = [[0, 10], [0, 10]]
+        self.plot_limits = [[0, 100], [0, 100]]
+        self.count_limits = [0, 1e5]
         self.dxf = None
         self.mat = None
         self.axes.cla()
 
     def draw_mat(self, mat_file):
-        pass
+        self.axes.imshow(mat_file.graph['result'], extent=(mat_file.graph['x'][0, 0], mat_file.graph['x'][0, -1],
+                                                           mat_file.graph['y'][0, 0], mat_file.graph['y'][0, -1]),
+                         cmap=tum_jet.tum_jet, vmin=self.count_limits[0], vmax=self.count_limits[1])
 
     def draw_dxf(self, dxf_file):
         dxf_objects = []

@@ -17,9 +17,8 @@ class MatFile:
 
     def load(self, parent):
         fname = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['registration'],
-                                                      "Drawing interchange files (*.dxf)")[0]
+                                                      "Matlab data file (*.mat)")[0]
         if not fname:  # capture cancel in dialog
             return
         self.file_name = fname
         self.graph = scipy.io.loadmat(self.file_name)
-
