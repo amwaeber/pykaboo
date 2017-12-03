@@ -16,12 +16,20 @@ class ColorPlot(MyMplCanvas):
 
     def compute_initial_figure(self):
         self.plot_limits = [[0, 100], [0, 100]]
+        self.plot_limits_fixed = False
         self.count_limits = [0, 1e5]
+        self.count_limits_fixed = False
         self.dxf = None
         self.mat = None
         self.axes.cla()
 
     def draw_mat(self, mat_file):
+        if not self.count_limits_fixed:
+            cts = mat_file.graph['result'].ravel()
+            self.count_limits = [min(cts), max(cts)]
+        if not self.plot_limits_fixed:
+            self.plot_limits = [[mat_file.graph['x'][0, 0], mat_file.graph['x'][0, -1]],
+                                [mat_file.graph['y'][0, 0], mat_file.graph['y'][0, -1]]]
         self.axes.imshow(mat_file.graph['result'], extent=(mat_file.graph['x'][0, 0], mat_file.graph['x'][0, -1],
                                                            mat_file.graph['y'][0, 0], mat_file.graph['y'][0, -1]),
                          cmap=tum_jet.tum_jet, vmin=self.count_limits[0], vmax=self.count_limits[1])
@@ -49,12 +57,12 @@ class ColorPlot(MyMplCanvas):
         self.mat = kwargs.get('mat', self.mat)
         self.dxf = kwargs.get('dxf', self.dxf)
         self.axes.cla()
-        self.axes.set_xlim(self.plot_limits[0][0], self.plot_limits[0][1])
-        self.axes.set_ylim(self.plot_limits[1][0], self.plot_limits[1][1])
         if self.mat:
             self.draw_mat(self.mat)
         if self.dxf:
             self.draw_dxf(self.dxf)
+        self.axes.set_xlim(self.plot_limits[0][0], self.plot_limits[0][1])
+        self.axes.set_ylim(self.plot_limits[1][0], self.plot_limits[1][1])
         self.draw()
 
     def load_mat(self, filename):

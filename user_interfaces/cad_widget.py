@@ -139,12 +139,14 @@ class CADWidget(QtWidgets.QWidget):
                           (self.canvas.plot_limits[0][1] - event.xdata) / 1.2 + event.xdata],
                          [(self.canvas.plot_limits[1][0] - event.ydata) / 1.2 + event.ydata,
                           (self.canvas.plot_limits[1][1] - event.ydata) / 1.2 + event.ydata]]
+            self.canvas.plot_limits_fixed = True
             self.canvas.draw_canvas(plot_limits=plot_lims)
         elif event.button == 'down':
             plot_lims = [[(self.canvas.plot_limits[0][0] - event.xdata) * 1.2 + event.xdata,
                           (self.canvas.plot_limits[0][1] - event.xdata) * 1.2 + event.xdata],
                          [(self.canvas.plot_limits[1][0] - event.ydata) * 1.2 + event.ydata,
                           (self.canvas.plot_limits[1][1] - event.ydata) * 1.2 + event.ydata]]
+            self.canvas.plot_limits_fixed = True
             self.canvas.draw_canvas(plot_limits=plot_lims)
 
     def mouse_released(self, event):
