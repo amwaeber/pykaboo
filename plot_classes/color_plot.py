@@ -19,8 +19,9 @@ class ColorPlot(MyMplCanvas):
         self.plot_limits_fixed = False
         self.count_limits = [0, 1e5]
         self.count_limits_fixed = False
-        self.dxf = None
         self.mat = None
+        self.dxf = None
+        self.markers = None
         self.axes.cla()
 
     def draw_mat(self, mat_file):
@@ -51,15 +52,22 @@ class ColorPlot(MyMplCanvas):
             for patch in dxf_objects:
                 self.axes.add_patch(patch)
 
+    def draw_markers(self, markers):
+        self.axes.plot([pt[0] for pt in markers], [pt[1] for pt in markers], ls='None',
+                       marker='+', markeredgecolor='k', markersize=15)
+
     def draw_canvas(self, **kwargs):
         self.plot_limits = kwargs.get('plot_limits', self.plot_limits)
         self.mat = kwargs.get('mat', self.mat)
         self.dxf = kwargs.get('dxf', self.dxf)
+        self.markers = kwargs.get('markers', self.markers)
         self.axes.cla()
         if self.mat:
             self.draw_mat(self.mat)
         if self.dxf:
             self.draw_dxf(self.dxf)
+        if self.markers:
+            self.draw_markers(self.markers)
         self.axes.set_xlim(self.plot_limits[0][0], self.plot_limits[0][1])
         self.axes.set_ylim(self.plot_limits[1][0], self.plot_limits[1][1])
         self.draw()

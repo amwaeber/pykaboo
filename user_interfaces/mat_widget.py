@@ -1,10 +1,14 @@
 import os
+import numpy as np
+from scipy import optimize as opt
 from PyQt5 import QtWidgets, QtGui
 
 from plot_classes.color_plot import ColorPlot
 from helper_classes.mat_file import MatFile
+from helper_classes.stack import Stack
 from user_interfaces.minmax_dialog import MinMaxDialog
 from utility.config import paths
+from utility.utility_functions import two_d_gaussian_sym
 
 
 # noinspection PyAttributeOutsideInit
@@ -17,7 +21,7 @@ class MatWidget(QtWidgets.QWidget):
             self.parent().mat_is_open = True
         except AttributeError:
             self.logger.add_to_log("Could not set flag.")
-            # pass
+        self.pick_stack = Stack()
 
         back_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'back.png')),
                                      'Back', self)
@@ -58,7 +62,7 @@ class MatWidget(QtWidgets.QWidget):
             dir_content = [f for f in os.listdir(dirname) if f.endswith('.mat')]
             fname = dir_content[(dir_content.index(fname) - 1 + len(dir_content)) % len(dir_content)]
             self.mat_file.load(self, file_name=os.path.join(dirname, fname))
-            self.canvas.draw_canvas(mat=self.mat_file)
+            self.canvas.draw_canvas(mat=self.mat_file, markers=self.pick_stack.items)
             self.logger.add_to_log("Loaded file " + self.mat_file.file_name)
 
     def file_forward(self):
@@ -68,12 +72,12 @@ class MatWidget(QtWidgets.QWidget):
             dir_content = [f for f in os.listdir(dirname) if f.endswith('.mat')]
             fname = dir_content[(dir_content.index(fname) + 1 + len(dir_content)) % len(dir_content)]
             self.mat_file.load(self, file_name=os.path.join(dirname, fname))
-            self.canvas.draw_canvas(mat=self.mat_file)
+            self.canvas.draw_canvas(mat=self.mat_file, markers=self.pick_stack.items)
             self.logger.add_to_log("Loaded file " + self.mat_file.file_name)
 
     def file_open(self):
         self.mat_file.load(self, dialog=True)
-        self.canvas.draw_canvas(mat=self.mat_file)
+        self.canvas.draw_canvas(mat=self.mat_file, markers=self.pick_stack.items)
         self.logger.add_to_log("Loaded file " + self.mat_file.file_name)
 
     def set_minmax(self):
@@ -82,9 +86,28 @@ class MatWidget(QtWidgets.QWidget):
         self.canvas.draw_canvas()
 
     def mouse_released(self, event):
-        pass
+        if any([event.xdata, event.ydata]):
+            if event.button == 1:
+                x_ax = self.mat_file.graph['x'][0]
+                y_ax = self.mat_file.graph['y'][0][::-1]
+                x_ax, y_ax = np.meshgrid(x_ax, y_ax)
 
-    def closeEvent(self, event):  # deactivate closing button
+                gauss_p0 = (self.canvas.count_limits[1], event.xdata, event.ydata, 0.2,
+                            self.canvas.count_limits[0])  # amplitude, x0, y0, sigma, offset
+                param_bounds = ([0, event.xdata - 1, event.ydata - 1, 0, -np.inf],
+                                [np.inf, event.xdata + 1, event.ydata + 1, np.inf, np.inf])
+                popt, _ = opt.curve_fit(two_d_gaussian_sym, [x_ax, y_ax], self.mat_file.graph['result'].ravel(),
+                                        p0=gauss_p0, bounds=param_bounds)
+                self.pick_stack.push([popt[1], popt[2]])
+                self.canvas.draw_canvas(markers=self.pick_stack.items)
+            elif event.button == 2:  # manually select point by pressing wheel
+                self.pick_stack.push([event.xdata, event.ydata])
+                self.canvas.draw_canvas(markers=self.pick_stack.items)
+            elif event.button == 3 and not self.pick_stack.is_empty():
+                self.pick_stack.pop()
+                self.canvas.draw_canvas(markers=self.pick_stack.items)
+
+    def closeEvent(self, event):
         try:
             self.parent().parent().parent().parent().mat_is_open = False
         except AttributeError:

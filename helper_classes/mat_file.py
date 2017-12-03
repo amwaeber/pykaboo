@@ -25,3 +25,4 @@ class MatFile:
                 return
             self.file_name = fname
         self.graph = scipy.io.loadmat(self.file_name)
+        parent.pick_stack.empty()
