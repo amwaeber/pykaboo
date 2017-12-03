@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets, QtGui
 
 from user_interfaces.logger import Logger
 from user_interfaces.cad_widget import CADWidget
+from user_interfaces.mat_widget import MatWidget
 from utility.config import global_confs
 from utility.config import paths
 
@@ -24,6 +25,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.mdi = QtWidgets.QMdiArea()  # create multiple document interface widget
         self.setCentralWidget(self.mdi)
+
+        self.mat_is_open = False
 
         self.logger = Logger(self)
         self.log_widget = QtWidgets.QMdiSubWindow()
@@ -103,7 +106,16 @@ class MainWindow(QtWidgets.QMainWindow):
             active_widget.dxf_file.save(active_widget, overwrite=False)
 
     def import_mat(self):
-        pass
+        if not self.mat_is_open:
+            self.mat = MatWidget(self.logger, self)
+            self.mat_widget = QtWidgets.QMdiSubWindow()
+            self.mat_widget.setWidget(self.mat)
+            self.mat_widget.setWindowTitle("Image")
+            self.mat_widget.setObjectName('WIN_MAT')
+            self.mdi.addSubWindow(self.mat_widget)
+            self.mat_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
+            self.mat_widget.show()
 
     def export_png(self):
-        pass
+        self.logger.add_to_log(str(self.mat_is_open))
+        # pass

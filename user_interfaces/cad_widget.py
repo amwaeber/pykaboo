@@ -71,7 +71,6 @@ class CADWidget(QtWidgets.QWidget):
         self.toolbar.addSeparator()
         self.toolbar.addAction(transform_btn)
 
-
         self.canvas = ColorPlot(self)
         self.canvas.mpl_connect('scroll_event', self.mouse_wheel)
         self.canvas.mpl_connect('button_release_event', self.mouse_released)
