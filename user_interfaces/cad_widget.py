@@ -7,6 +7,7 @@ from utility.config import paths
 
 
 # noinspection PyAttributeOutsideInit
+# noinspection PyArgumentList
 class CADWidget(QtWidgets.QWidget):
     def __init__(self, action, window_number, logger, parent=None):
         super(CADWidget, self).__init__(parent)
@@ -151,6 +152,3 @@ class CADWidget(QtWidgets.QWidget):
 
     def mouse_released(self, event):
         pass
-
-
-

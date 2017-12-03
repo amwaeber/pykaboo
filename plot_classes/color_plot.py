@@ -44,7 +44,7 @@ class ColorPlot(MyMplCanvas):
             if e.dxftype == 'CIRCLE':
                 dxf_objects.append(patches.Circle(e.center[:-1], e.radius, fill=False, color=xterm_to_hex(c)))
             elif e.dxftype == 'POLYLINE':
-                codes = [Path.MOVETO] + [Path.LINETO for i in range(len(e.points) - 2)] + [Path.CLOSEPOLY]
+                codes = [Path.MOVETO] + [Path.LINETO for _ in range(len(e.points) - 2)] + [Path.CLOSEPOLY]
                 path = Path([p[:-1] for p in e.points], codes)
                 dxf_objects.append(patches.PathPatch(path, fill=False, color=xterm_to_hex(c)))
         if len(dxf_objects):
@@ -53,7 +53,6 @@ class ColorPlot(MyMplCanvas):
 
     def draw_canvas(self, **kwargs):
         self.plot_limits = kwargs.get('plot_limits', self.plot_limits)
-
         self.mat = kwargs.get('mat', self.mat)
         self.dxf = kwargs.get('dxf', self.dxf)
         self.axes.cla()
@@ -101,5 +100,3 @@ class ColorPlot(MyMplCanvas):
 
     def save(self, fname):
         self.fig.savefig(fname)
-
-

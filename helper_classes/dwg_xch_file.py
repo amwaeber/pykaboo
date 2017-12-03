@@ -19,13 +19,15 @@ class DwgXchFile:
         self.file_type = file_type
         if self.file_type == 'standard':
             fname = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['registration'],
-                                                                   "Drawing interchange files (*.dxf)")[0]
+                                                          "Drawing interchange files (*.dxf)")[0]
         elif self.file_type == 'template':
             fname = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['templates'],
-                                                                   "Drawing interchange files (*.dxf)")[0]
+                                                          "Drawing interchange files (*.dxf)")[0]
         elif self.file_type == 'stencil':
             fname = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['stencils'],
-                                                                   "Drawing interchange files (*.dxf)")[0]
+                                                          "Drawing interchange files (*.dxf)")[0]
+        else:
+            fname = None
         if not fname:  # capture cancel in dialog
             return
         self.file_name = fname
@@ -34,7 +36,7 @@ class DwgXchFile:
     def save(self, parent, overwrite=True):
         if any([not overwrite, not self.file_name, not self.file_type == 'standard']):
             fname = QtWidgets.QFileDialog.getSaveFileName(parent, 'Save File', paths['registration'],
-                                                                   "Drawing interchange files (*.dxf)")[0]
+                                                          "Drawing interchange files (*.dxf)")[0]
             if not fname:  # capture cancel in dialog
                 return
             self.file_name = fname

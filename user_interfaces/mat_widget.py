@@ -7,6 +7,7 @@ from utility.config import paths
 
 
 # noinspection PyAttributeOutsideInit
+# noinspection PyArgumentList
 class MatWidget(QtWidgets.QWidget):
     def __init__(self, logger, parent=None):
         super(MatWidget, self).__init__(parent)
@@ -40,18 +41,34 @@ class MatWidget(QtWidgets.QWidget):
         self.setLayout(vbox)
 
         self.mat_file = MatFile()
-        self.mat_file.load(self)
+        self.mat_file.load(self, dialog=True)
         self.canvas.draw_canvas(mat=self.mat_file)
-        self.logger.add_to_log("New image.")
+        self.logger.add_to_log("Loaded file " + self.mat_file.file_name)
 
     def file_back(self):
-        pass
+        if self.mat_file.file_name:
+            dirname = os.path.dirname(self.mat_file.file_name)
+            fname = os.path.basename(self.mat_file.file_name)
+            dir_content = [f for f in os.listdir(dirname) if f.endswith('.mat')]
+            fname = dir_content[(dir_content.index(fname) - 1 + len(dir_content)) % len(dir_content)]
+            self.mat_file.load(self, file_name=os.path.join(dirname, fname))
+            self.canvas.draw_canvas(mat=self.mat_file)
+            self.logger.add_to_log("Loaded file " + self.mat_file.file_name)
 
     def file_forward(self):
-        pass
+        if self.mat_file.file_name:
+            dirname = os.path.dirname(self.mat_file.file_name)
+            fname = os.path.basename(self.mat_file.file_name)
+            dir_content = [f for f in os.listdir(dirname) if f.endswith('.mat')]
+            fname = dir_content[(dir_content.index(fname) + 1 + len(dir_content)) % len(dir_content)]
+            self.mat_file.load(self, file_name=os.path.join(dirname, fname))
+            self.canvas.draw_canvas(mat=self.mat_file)
+            self.logger.add_to_log("Loaded file " + self.mat_file.file_name)
 
     def file_open(self):
-        pass
+        self.mat_file.load(self, dialog=True)
+        self.canvas.draw_canvas(mat=self.mat_file)
+        self.logger.add_to_log("Loaded file " + self.mat_file.file_name)
 
     def mouse_released(self, event):
         pass
