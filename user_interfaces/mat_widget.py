@@ -45,9 +45,14 @@ class MatWidget(QtWidgets.QWidget):
 
         self.canvas = ColorPlot(self)
         self.canvas.mpl_connect('button_release_event', self.mouse_released)
+        self.canvas.mpl_connect('motion_notify_event', self.mouse_moved)
+
+        self.status_bar = QtWidgets.QStatusBar()
+
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.toolbar)
         vbox.addWidget(self.canvas)
+        vbox.addWidget(self.status_bar)
         self.setLayout(vbox)
 
         self.mat_file = MatFile()
@@ -106,6 +111,10 @@ class MatWidget(QtWidgets.QWidget):
             elif event.button == 3 and not self.pick_stack.is_empty():
                 self.pick_stack.pop()
                 self.canvas.draw_canvas(markers=self.pick_stack.items)
+
+    def mouse_moved(self, event):
+        if any([event.xdata, event.ydata]):
+            self.status_bar.showMessage("X={0:.3f}, Y={1:.3f}".format(event.xdata, event.ydata))
 
     def closeEvent(self, event):
         try:
