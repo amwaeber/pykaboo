@@ -66,6 +66,7 @@ class NVLocaliser(QtWidgets.QWidget):
         self.magnets_cb.addItems(
             ['mitsubishi5', 'windmill_5B1', 'mitsubishi5xp', 'mitsubishi5xm', 'mitsubishi5yp', 'mitsubishi5ym',
              'windmill5xp', 'windmill5xm', 'windmill5yp', 'windmill5ym'])
+        self.magnets_cb.addItems(['wires'])
         self.trafo_btn = QtWidgets.QPushButton('Transform', self)
         self.trafo_btn.setToolTip('Transform raw image into coordinate system')
         self.trafo_btn.clicked.connect(self.trafo)
