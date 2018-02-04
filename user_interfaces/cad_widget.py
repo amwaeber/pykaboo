@@ -1,5 +1,5 @@
 import os
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 
 from plot_classes.color_plot import ColorPlot
 from helper_classes.dwg_xch_file import DwgXchFile
@@ -158,8 +158,23 @@ class CADWidget(QtWidgets.QWidget):
             self.canvas.draw_canvas(plot_limits=plot_lims)
 
     def mouse_moved(self, event):
-        if any([event.xdata, event.ydata]):
-            self.status_bar.showMessage("X={0:.3f}, Y={1:.3f}".format(event.xdata, event.ydata))
+        position = self.get_coordinates(event, use_grid=True)
+        if any(position):
+            self.status_bar.showMessage("X={0:.3f}, Y={1:.3f}".format(*position))
 
     def mouse_released(self, event):
         pass
+
+    def get_coordinates(self, event, use_grid):
+        if any([event.xdata, event.ydata]):
+            if use_grid and self.grid[0]:
+                if QtWidgets.QApplication.keyboardModifiers() == QtCore.Qt.ControlModifier:
+                    return [round(event.xdata / self.grid[2]) * self.grid[2],
+                            round(event.ydata / self.grid[2]) * self.grid[2]]
+                else:
+                    return [round(event.xdata/self.grid[1])*self.grid[1],
+                            round(event.ydata / self.grid[1]) * self.grid[1]]
+            else:
+                return [event.xdata, event.ydata]
+        else:
+            return [None, None]
