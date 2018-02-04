@@ -2,10 +2,12 @@ import numpy as np
 import scipy.io
 from matplotlib import patches as patches
 from matplotlib.path import Path
+from PyQt5 import QtWidgets
 
 from plot_classes.my_mpl_canvas import MyMplCanvas
 from utility import tum_jet
 from utility.xterm_hex_conv import xterm_to_hex
+from utility.config import paths
 
 
 # noinspection PyAttributeOutsideInit
@@ -106,5 +108,9 @@ class ColorPlot(MyMplCanvas):
                            markerfacecolor='r', markeredgecolor='w')
         self.draw()
 
-    def save(self, fname):
+    def save(self, parent):
+        fname = QtWidgets.QFileDialog.getSaveFileName(parent, 'Save File', paths['registration'],
+                                                      "Portable network graphics (*.png)")[0]
+        if not fname:  # capture cancel in dialog
+            return
         self.fig.savefig(fname)

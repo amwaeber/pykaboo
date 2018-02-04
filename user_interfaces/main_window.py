@@ -117,5 +117,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.mat_widget.show()
 
     def export_png(self):
+        active_widget = self.mdi.activeSubWindow().widget()
+        if isinstance(active_widget, CADWidget):
+            active_widget.canvas.save(active_widget)
         self.logger.add_to_log(str(self.mat_is_open))
-        # pass
