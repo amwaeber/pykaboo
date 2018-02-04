@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 
 from plot_classes.color_plot import ColorPlot
 from helper_classes.dwg_xch_file import DwgXchFile
+from helper_classes.stack import Stack
 from utility.config import paths
 from user_interfaces.grid_dialog import GridDialog
 
@@ -15,6 +16,7 @@ class CADWidget(QtWidgets.QWidget):
         self.window_number = window_number
         self.logger = logger
         self.grid = [False, 1, 0.1]
+        self.pick_stack = Stack()
 
         draw_line_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'line.png')),
                                           'Line tool', self)
@@ -142,18 +144,19 @@ class CADWidget(QtWidgets.QWidget):
         pass
 
     def mouse_wheel(self, event):
-        if event.button == 'up' and any([event.xdata, event.ydata]):
-            plot_lims = [[(self.canvas.plot_limits[0][0] - event.xdata) / 1.2 + event.xdata,
-                          (self.canvas.plot_limits[0][1] - event.xdata) / 1.2 + event.xdata],
-                         [(self.canvas.plot_limits[1][0] - event.ydata) / 1.2 + event.ydata,
-                          (self.canvas.plot_limits[1][1] - event.ydata) / 1.2 + event.ydata]]
+        position = self.get_coordinates(event, use_grid=False)
+        if event.button == 'up' and any(position):
+            plot_lims = [[(self.canvas.plot_limits[0][0] - position[0]) / 1.2 + position[0],
+                          (self.canvas.plot_limits[0][1] - position[0]) / 1.2 + position[0]],
+                         [(self.canvas.plot_limits[1][0] - position[1]) / 1.2 + position[1],
+                          (self.canvas.plot_limits[1][1] - position[1]) / 1.2 + position[1]]]
             self.canvas.plot_limits_fixed = True
             self.canvas.draw_canvas(plot_limits=plot_lims)
-        elif event.button == 'down' and any([event.xdata, event.ydata]):
-            plot_lims = [[(self.canvas.plot_limits[0][0] - event.xdata) * 1.2 + event.xdata,
-                          (self.canvas.plot_limits[0][1] - event.xdata) * 1.2 + event.xdata],
-                         [(self.canvas.plot_limits[1][0] - event.ydata) * 1.2 + event.ydata,
-                          (self.canvas.plot_limits[1][1] - event.ydata) * 1.2 + event.ydata]]
+        elif event.button == 'down' and any(position):
+            plot_lims = [[(self.canvas.plot_limits[0][0] - position[0]) * 1.2 + position[0],
+                          (self.canvas.plot_limits[0][1] - position[0]) * 1.2 + position[0]],
+                         [(self.canvas.plot_limits[1][0] - position[1]) * 1.2 + position[1],
+                          (self.canvas.plot_limits[1][1] - position[1]) * 1.2 + position[1]]]
             self.canvas.plot_limits_fixed = True
             self.canvas.draw_canvas(plot_limits=plot_lims)
 
@@ -163,7 +166,12 @@ class CADWidget(QtWidgets.QWidget):
             self.status_bar.showMessage("X={0:.3f}, Y={1:.3f}".format(*position))
 
     def mouse_released(self, event):
-        pass
+        position = self.get_coordinates(event, use_grid=True)
+        if any(position):
+            if event.button == 1:
+                self.pick_stack.push(position)
+            elif event.button == 3 and not self.pick_stack.is_empty():
+                self.pick_stack.pop()
 
     def get_coordinates(self, event, use_grid):
         if any([event.xdata, event.ydata]):
