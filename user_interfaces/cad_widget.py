@@ -4,6 +4,7 @@ from PyQt5 import QtWidgets, QtGui
 from plot_classes.color_plot import ColorPlot
 from helper_classes.dwg_xch_file import DwgXchFile
 from utility.config import paths
+from user_interfaces.grid_dialog import GridDialog
 
 
 # noinspection PyAttributeOutsideInit
@@ -13,6 +14,7 @@ class CADWidget(QtWidgets.QWidget):
         super(CADWidget, self).__init__(parent)
         self.window_number = window_number
         self.logger = logger
+        self.grid = [False, 1, 0.1]
 
         draw_line_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'line.png')),
                                           'Line tool', self)
@@ -37,7 +39,7 @@ class CADWidget(QtWidgets.QWidget):
         pick_btn.triggered.connect(self.pick_object)
         grid_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'grid.png')),
                                      'Show grid lines', self)
-        grid_btn.triggered.connect(self.show_grid)
+        grid_btn.triggered.connect(self.set_grid)
         measure_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'measure.png')),
                                         'Measure', self)
         measure_btn.triggered.connect(self.measure)
@@ -121,8 +123,8 @@ class CADWidget(QtWidgets.QWidget):
     def pick_object(self):
         pass
 
-    def show_grid(self):
-        pass
+    def set_grid(self):
+        self.grid = GridDialog(self.grid, self).exec_()
 
     def measure(self):
         pass
