@@ -270,5 +270,5 @@ CLUT = [  # color look-up table
 def xterm_to_hex(xterm):
     for i in range(len(CLUT)):
         if int(CLUT[i][0]) == xterm:
-            return CLUT[i][1]
-    return 'ffffff'
+            return '#' + CLUT[i][1]
+    return '#ffffff'

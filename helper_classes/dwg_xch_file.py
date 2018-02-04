@@ -15,7 +15,8 @@ class DwgXchFile:
         self.file_type = 'standard'
         self.drawing = dxfgrabber.read(io.StringIO())
 
-    def load(self, parent, file_type='standard'):
+    def load(self, parent, file_type='standard', **kwargs):
+        self.file_name = kwargs.get('file_name', self.file_name)
         self.file_type = file_type
         if self.file_type == 'standard':
             fname = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['registration'],
@@ -23,9 +24,11 @@ class DwgXchFile:
         elif self.file_type == 'template':
             fname = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['templates'],
                                                           "Drawing interchange files (*.dxf)")[0]
-        elif self.file_type == 'stencil':
+        elif self.file_type == 'stencil' and not self.file_name:
             fname = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['stencils'],
                                                           "Drawing interchange files (*.dxf)")[0]
+        elif self.file_type == 'stencil':
+            fname = self.file_name
         else:
             fname = None
         if not fname:  # capture cancel in dialog

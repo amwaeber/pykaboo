@@ -50,6 +50,12 @@ class ColorPlot(MyMplCanvas):
                 codes = [Path.MOVETO] + [Path.LINETO for _ in range(len(e.points) - 2)] + [Path.CLOSEPOLY]
                 path = Path([p[:-1] for p in e.points], codes)
                 dxf_objects.append(patches.PathPatch(path, fill=False, color=xterm_to_hex(c)))
+            elif e.dxftype == 'LWPOLYLINE':
+                codes = [Path.MOVETO] + [Path.LINETO for _ in range(len(e.points) - 2)] + [Path.CLOSEPOLY]
+                path = Path([(p[0] + 470, p[1] + 470) for p in e.points], codes)
+                # TODO: adjust coordinates in LWPOLYLINES!
+                # TODO: close Polylines!
+                dxf_objects.append(patches.PathPatch(path, fill=False, color=xterm_to_hex(c)))
         if len(dxf_objects):
             for patch in dxf_objects:
                 self.axes.add_patch(patch)
