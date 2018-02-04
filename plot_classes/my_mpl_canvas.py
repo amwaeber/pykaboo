@@ -1,4 +1,4 @@
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
@@ -18,6 +18,9 @@ class MyMplCanvas(FigureCanvas):
                                    QtWidgets.QSizePolicy.Expanding,
                                    QtWidgets.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
+
+    def minimumSizeHint(self):
+        return QtCore.QSize(100, 100)
 
     def compute_initial_figure(self):
         pass

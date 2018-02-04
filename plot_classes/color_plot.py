@@ -37,10 +37,13 @@ class ColorPlot(MyMplCanvas):
                                                            mat_file.graph['y'][0, 0], mat_file.graph['y'][0, -1]),
                          cmap=tum_jet.tum_jet, vmin=self.count_limits[0], vmax=self.count_limits[1])
 
-    def draw_dxf(self, dxf_file):
+    def draw_dxf(self, dxf_file, **kwargs):
+        self.dxf_color = kwargs.get('dxf_color', None)
         dxf_objects = []
         for e in dxf_file.drawing.entities:
-            if e.color < 256:
+            if self.dxf_color:
+                c = self.dxf_color
+            elif e.color < 256:
                 c = e.color
             else:
                 c = dxf_file.drawing.layers[e.layer].color
@@ -69,11 +72,12 @@ class ColorPlot(MyMplCanvas):
         self.mat = kwargs.get('mat', self.mat)
         self.dxf = kwargs.get('dxf', self.dxf)
         self.markers = kwargs.get('markers', self.markers)
+        self.dxf_color = kwargs.get('dxf_color', None)
         self.axes.cla()
         if self.mat:
             self.draw_mat(self.mat)
         if self.dxf:
-            self.draw_dxf(self.dxf)
+            self.draw_dxf(self.dxf, dxf_color=self.dxf_color)
         if self.markers:
             self.draw_markers(self.markers)
         self.axes.set_xlim(self.plot_limits[0][0], self.plot_limits[0][1])

@@ -21,7 +21,7 @@ class StencilDialog(QtWidgets.QDialog):
                                                                             self.stencil_list[idxf]))
         self.previews = [ColorPlot(self) for _ in self.stencil_list]
         for icanvas, canvas in enumerate(self.previews):
-            canvas.draw_canvas(dxf=self.dxf_file_list[icanvas], plot_limits=[[-1, 1], [-1, 1]])
+            canvas.draw_canvas(dxf=self.dxf_file_list[icanvas], dxf_color=1, plot_limits=[[-1, 1], [-1, 1]])
         # TODO: selection of stencil, suitable color
         self.btns = QtWidgets.QDialogButtonBox(
             QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel, self)
@@ -32,7 +32,6 @@ class StencilDialog(QtWidgets.QDialog):
         self.scroll.setWidgetResizable(True)
         self.scroll.setFixedHeight(400)
         self.scrollContents = QtWidgets.QWidget()
-        # TODO: set minimum height in grid
         glay = QtWidgets.QGridLayout(self.scrollContents)
         for ist, st in enumerate(self.previews):
             glay.addWidget(st, ist // 4, ist % 4)
