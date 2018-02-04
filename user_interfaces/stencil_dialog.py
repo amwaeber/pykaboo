@@ -21,8 +21,9 @@ class StencilDialog(QtWidgets.QDialog):
                                                                             self.stencil_list[idxf]))
         self.previews = [ColorPlot(self) for _ in self.stencil_list]
         for icanvas, canvas in enumerate(self.previews):
-            canvas.draw_canvas(dxf=self.dxf_file_list[icanvas], dxf_color=1, plot_limits=[[-1, 1], [-1, 1]])
-        # TODO: selection of stencil, suitable color
+            canvas.draw_canvas(dxf=self.dxf_file_list[icanvas], dxf_color=1, plot_limits=[[-1, 1], [-1, 1]],
+                               show_axes=False)
+        # TODO: selection of stencil
         self.btns = QtWidgets.QDialogButtonBox(
             QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel, self)
         self.btns.accepted.connect(self.accept)

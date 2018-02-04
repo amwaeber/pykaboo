@@ -73,6 +73,7 @@ class ColorPlot(MyMplCanvas):
         self.dxf = kwargs.get('dxf', self.dxf)
         self.markers = kwargs.get('markers', self.markers)
         self.dxf_color = kwargs.get('dxf_color', None)
+        self.show_axes = kwargs.get('show_axes', True)
         self.axes.cla()
         if self.mat:
             self.draw_mat(self.mat)
@@ -82,6 +83,8 @@ class ColorPlot(MyMplCanvas):
             self.draw_markers(self.markers)
         self.axes.set_xlim(self.plot_limits[0][0], self.plot_limits[0][1])
         self.axes.set_ylim(self.plot_limits[1][0], self.plot_limits[1][1])
+        self.axes.get_xaxis().set_visible(self.show_axes)
+        self.axes.get_yaxis().set_visible(self.show_axes)
         self.draw()
 
     def load_mat(self, filename):
@@ -123,4 +126,4 @@ class ColorPlot(MyMplCanvas):
                                                       "Portable network graphics (*.png)")[0]
         if not fname:  # capture cancel in dialog
             return
-        self.fig.savefig(fname)
+        self.fig.savefig(fname, bbox_inches='tight')
