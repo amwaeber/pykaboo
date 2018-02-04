@@ -22,21 +22,25 @@ class StencilDialog(QtWidgets.QDialog):
         self.previews = [ColorPlot(self) for _ in self.stencil_list]
         for icanvas, canvas in enumerate(self.previews):
             canvas.draw_canvas(dxf=self.dxf_file_list[icanvas], plot_limits=[[-1, 1], [-1, 1]])
-
+        # TODO: selection of stencil, suitable color
         self.btns = QtWidgets.QDialogButtonBox(
             QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel, self)
         self.btns.accepted.connect(self.accept)
         self.btns.rejected.connect(self.reject)
 
-        print(self.stencil_list)
-
-        glay = QtWidgets.QGridLayout()
+        self.scroll = QtWidgets.QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setFixedHeight(400)
+        self.scrollContents = QtWidgets.QWidget()
+        # TODO: set minimum height in grid
+        glay = QtWidgets.QGridLayout(self.scrollContents)
         for ist, st in enumerate(self.previews):
             glay.addWidget(st, ist // 4, ist % 4)
+        self.scroll.setWidget(self.scrollContents)
 
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.setSpacing(10)
-        vbox.addLayout(glay)
+        vbox.addWidget(self.scroll)
         vbox.addSpacing(5)
         vbox.addWidget(self.btns)
 
