@@ -50,14 +50,12 @@ class ColorPlot(MyMplCanvas):
             if e.dxftype == 'CIRCLE':
                 dxf_objects.append(patches.Circle(e.center[:-1], e.radius, fill=False, color=xterm_to_hex(c)))
             elif e.dxftype == 'POLYLINE':
-                codes = [Path.MOVETO] + [Path.LINETO for _ in range(len(e.points) - 2)] + [Path.CLOSEPOLY]
-                path = Path([p[:-1] for p in e.points], codes)
+                codes = [Path.MOVETO] + [Path.LINETO for _ in range(len(e.points) - 1)] + [Path.CLOSEPOLY]
+                path = Path([p[:-1] for p in e.points]+[e.points[0][:-1]], codes)
                 dxf_objects.append(patches.PathPatch(path, fill=False, color=xterm_to_hex(c)))
             elif e.dxftype == 'LWPOLYLINE':
-                codes = [Path.MOVETO] + [Path.LINETO for _ in range(len(e.points) - 2)] + [Path.CLOSEPOLY]
-                path = Path([(p[0] + 470, p[1] + 470) for p in e.points], codes)
-                # TODO: adjust coordinates in LWPOLYLINES!
-                # TODO: close Polylines!
+                codes = [Path.MOVETO] + [Path.LINETO for _ in range(len(e.points) - 1)] + [Path.CLOSEPOLY]
+                path = Path(e.points+[e.points[0]], codes)
                 dxf_objects.append(patches.PathPatch(path, fill=False, color=xterm_to_hex(c)))
         if len(dxf_objects):
             for patch in dxf_objects:
