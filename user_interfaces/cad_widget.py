@@ -37,7 +37,7 @@ class CADWidget(QtWidgets.QWidget):
         text_btn.triggered.connect(self.add_text)
         stencil_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'stencil.png')),
                                         'Stencil tool', self)
-        stencil_btn.triggered.connect(self.select_stencil)
+        stencil_btn.triggered.connect(self.use_stencil)
         pick_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'pick.png')),
                                      'Pick object', self)
         pick_btn.triggered.connect(self.pick_object)
@@ -50,6 +50,9 @@ class CADWidget(QtWidgets.QWidget):
         color_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'palette.png')),
                                       'Select color', self)
         color_btn.triggered.connect(self.select_color)
+        sel_stencil_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'select_stencil.png')),
+                                            'Select stencil', self)
+        sel_stencil_btn.triggered.connect(self.select_stencil)
         properties_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'properties.png')),
                                            'Set properties (layer, block)', self)
         properties_btn.triggered.connect(self.set_properties)
@@ -73,6 +76,7 @@ class CADWidget(QtWidgets.QWidget):
         self.toolbar.addAction(measure_btn)
         self.toolbar.addSeparator()
         self.toolbar.addAction(color_btn)
+        self.toolbar.addAction(sel_stencil_btn)
         self.toolbar.addAction(properties_btn)
         self.toolbar.addAction(view_btn)
         self.toolbar.addSeparator()
@@ -121,8 +125,11 @@ class CADWidget(QtWidgets.QWidget):
     def add_text(self):
         pass
 
-    def select_stencil(self):
-        self.stencil = StencilDialog(self.stencil, self).exec_()
+    def use_stencil(self):
+        if not self.stencil:  # if no stencil has been selected yet, open dialog first
+            self.stencil = StencilDialog(self.stencil, self).exec_()
+            self.logger.add_to_log("Active stencil: {0}".format(self.stencil))
+        pass
 
     def pick_object(self):
         pass
@@ -135,6 +142,10 @@ class CADWidget(QtWidgets.QWidget):
 
     def select_color(self):
         pass
+
+    def select_stencil(self):
+        self.stencil = StencilDialog(self.stencil, self).exec_()
+        self.logger.add_to_log("Active stencil: {0}".format(self.stencil))
 
     def set_properties(self):
         pass

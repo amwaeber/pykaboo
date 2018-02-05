@@ -12,10 +12,13 @@ class StencilDialog(QtWidgets.QDialog):
     def __init__(self, stencil, parent=None):
         super(StencilDialog, self).__init__(parent)
         self.stencil = stencil
+
         self.stencil_list = [f for f in os.listdir(paths['stencils']) if f.endswith('.dxf')]
         self.stencil_btns = [QtWidgets.QPushButton(st, self) for st in self.stencil_list]
+        for btn in self.stencil_btns:
+            btn.setObjectName(btn.text())
+            btn.clicked.connect(self.set_stencil)
 
-        # for ist, st in enumerate(self.stencil_list):
         self.dxf_file_list = [DwgXchFile() for _ in self.stencil_list]
         for idxf, dxf_file in enumerate(self.dxf_file_list):
             dxf_file.load(self, file_type='stencil', file_name=os.path.join(paths['stencils'],
@@ -24,7 +27,6 @@ class StencilDialog(QtWidgets.QDialog):
         for icanvas, canvas in enumerate(self.previews):
             canvas.draw_canvas(dxf=self.dxf_file_list[icanvas], dxf_color=1, plot_limits=[[-1, 1], [-1, 1]],
                                show_axes=False)
-        # TODO: selection of stencil
         self.btns = QtWidgets.QDialogButtonBox(
             QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel, self)
         self.btns.accepted.connect(self.accept)
@@ -45,6 +47,10 @@ class StencilDialog(QtWidgets.QDialog):
         vbox.addWidget(self.scroll)
         vbox.addSpacing(5)
         vbox.addWidget(self.btns)
+
+    def set_stencil(self):
+        sel_stencil = self.sender()
+        self.stencil = str(sel_stencil.objectName())
 
     def exec_(self):
         super(StencilDialog, self).exec_()
