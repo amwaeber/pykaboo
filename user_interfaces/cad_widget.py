@@ -136,13 +136,18 @@ class CADWidget(QtWidgets.QWidget):
 
     def set_grid(self):
         self.grid = GridDialog(self.grid, self).exec_()
+        if self.grid[0]:
+            self.logger.add_to_log("Grid active. Primary spacing {0}, alternative spacing {1}".
+                                   format(self.grid[1], self.grid[2]))
+        else:
+            self.logger.add_to_log("Grid not active.")
 
     def measure(self):
         pass
 
     def select_color(self):
         self.color = QtWidgets.QColorDialog.getColor().name()
-        self.logger.add_to_log("Set color to: {0}".format(self.color))
+        self.logger.add_to_log("Set color: {0}".format(self.color))
 
     def select_stencil(self):
         self.stencil = StencilDialog(self.stencil, self).exec_()
