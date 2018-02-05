@@ -143,8 +143,9 @@ class NVLocaliser(QtWidgets.QWidget):
         if self.dir_name == '':
             return
 
-        self.dir_content = [f for f in os.listdir(self.dir_name) if
-                            (f.startswith('scan') or f.startswith('field')) and f.endswith('.mat')]
+        paths['registration'] = self.dir_name
+        self.dir_content = [f for f in os.listdir(self.dir_name) if f.endswith('000.mat')]
+#                            (f.startswith('scan') or f.startswith('field')) and f.endswith('.mat')]
         try:
             self.raw_img.load_mat(os.path.join(self.dir_name, self.dir_content[0]))
             self.change_cts()
