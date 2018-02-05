@@ -1,5 +1,5 @@
 CLUT = [  # color look-up table
-#    8-bit, RGB hex
+    #    8-bit, RGB hex
 
     # Primary 3-bit (8 colors). Unique representation!
     ('00',  '000000'),
@@ -272,3 +272,10 @@ def xterm_to_hex(xterm):
         if int(CLUT[i][0]) == xterm:
             return '#' + CLUT[i][1]
     return '#ffffff'
+
+
+def hex_to_xterm(hex_val):
+    for i in range(len(CLUT)):
+        if int(CLUT[i][1]) == hex_val[1:]:
+            return CLUT[i][0]
+    return '256'

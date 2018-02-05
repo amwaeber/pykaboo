@@ -141,7 +141,8 @@ class CADWidget(QtWidgets.QWidget):
         pass
 
     def select_color(self):
-        pass
+        self.color = QtWidgets.QColorDialog.getColor().name()
+        self.logger.add_to_log("Set color to: {0}".format(self.color))
 
     def select_stencil(self):
         self.stencil = StencilDialog(self.stencil, self).exec_()
