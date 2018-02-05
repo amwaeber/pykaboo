@@ -13,6 +13,7 @@ class StencilDialog(QtWidgets.QDialog):
         super(StencilDialog, self).__init__(parent)
         self.stencil = stencil
         self.stencil_list = [f for f in os.listdir(paths['stencils']) if f.endswith('.dxf')]
+        self.stencil_btns = [QtWidgets.QPushButton(st, self) for st in self.stencil_list]
 
         # for ist, st in enumerate(self.stencil_list):
         self.dxf_file_list = [DwgXchFile() for _ in self.stencil_list]
@@ -31,11 +32,12 @@ class StencilDialog(QtWidgets.QDialog):
 
         self.scroll = QtWidgets.QScrollArea()
         self.scroll.setWidgetResizable(True)
-        self.scroll.setFixedHeight(400)
+        self.scroll.setFixedHeight(600)
         self.scrollContents = QtWidgets.QWidget()
         glay = QtWidgets.QGridLayout(self.scrollContents)
         for ist, st in enumerate(self.previews):
-            glay.addWidget(st, ist // 4, ist % 4)
+            glay.addWidget(st, 2 * (ist // 4), ist % 4)
+            glay.addWidget(self.stencil_btns[ist], 2 * (ist // 4) + 1, ist % 4)
         self.scroll.setWidget(self.scrollContents)
 
         vbox = QtWidgets.QVBoxLayout(self)
