@@ -6,6 +6,7 @@ from helper_classes.dwg_xch_file import DwgXchFile
 from helper_classes.stack import Stack
 from utility.config import paths
 from user_interfaces.grid_dialog import GridDialog
+from user_interfaces.props_dialog import PropsDialog
 from user_interfaces.stencil_dialog import StencilDialog
 
 
@@ -19,6 +20,7 @@ class CADWidget(QtWidgets.QWidget):
         self.grid = [False, 1, 0.1]
         self.pick_stack = Stack()
         self.stencil = None
+        self.layer = None
 
         draw_line_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'line.png')),
                                           'Line tool', self)
@@ -154,7 +156,7 @@ class CADWidget(QtWidgets.QWidget):
         self.logger.add_to_log("Active stencil: {0}".format(self.stencil))
 
     def set_properties(self):
-        pass
+        self.layer = PropsDialog(self.layer, self.dxf_file, self).exec_()
 
     def view_properties(self):
         pass
