@@ -157,6 +157,7 @@ class CADWidget(QtWidgets.QWidget):
 
     def set_properties(self):
         self.layer = PropsDialog(self.layer, self.dxf_file, self).exec_()
+        self.logger.add_to_log("Active layer: {0}".format(self.layer))
 
     def view_properties(self):
         pass
