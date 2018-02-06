@@ -8,6 +8,8 @@ class PropsDialog(QtWidgets.QDialog):
         super(PropsDialog, self).__init__(parent)
         self.active_layer = layer
 
+        self.layer_edts = [QtWidgets.QLineEdit(l.name, self) for l in dxf_file.drawing.layers]
+
         # self.lbl_active = QtWidgets.QLabel("Primary Grid active", self)
         # self.cb_primary = QtWidgets.QCheckBox(self)
         # self.cb_primary.setChecked(self.grid[0])
@@ -37,6 +39,8 @@ class PropsDialog(QtWidgets.QDialog):
 
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.setSpacing(10)
+        for edt in self.layer_edts:
+            vbox.addWidget(edt)
         # vbox.addLayout(hbox1)
         # vbox.addSpacing(5)
         # vbox.addLayout(hbox2)
