@@ -1,5 +1,7 @@
 from PyQt5 import QtWidgets
 
+from utility.xterm_hex_conv import xterm_to_hex
+
 
 # noinspection PyAttributeOutsideInit
 # noinspection PyArgumentList
@@ -8,43 +10,26 @@ class PropsDialog(QtWidgets.QDialog):
         super(PropsDialog, self).__init__(parent)
         self.active_layer = layer
 
-        self.layer_edts = [QtWidgets.QLineEdit(l.name, self) for l in dxf_file.drawing.layers]
+        self.layer_color_btns = [QtWidgets.QPushButton(self) for _ in dxf_file.drawing.layers]
+        for il, l in enumerate(dxf_file.drawing.layers):
+            self.layer_color_btns[il].setStyleSheet("background-color: %s" % xterm_to_hex(l.color))
+            self.layer_color_btns[il].resize(self.layer_color_btns[il].sizeHint())
+            # self.layer_color_btns[il].clicked.connect(self.set_color)
+        self.layer_name_edts = [QtWidgets.QLineEdit(l.name, self) for l in dxf_file.drawing.layers]
 
-        # self.lbl_active = QtWidgets.QLabel("Primary Grid active", self)
-        # self.cb_primary = QtWidgets.QCheckBox(self)
-        # self.cb_primary.setChecked(self.grid[0])
-        # self.lbl_primary = QtWidgets.QLabel("Primary Grid:", self)
-        # self.edt_primary = QtWidgets.QLineEdit(str(self.grid[1]), self)
-        # self.lbl_alt = QtWidgets.QLabel("Alternative Grid:", self)
-        # self.edt_alt = QtWidgets.QLineEdit(str(self.grid[2]), self)
         self.btns = QtWidgets.QDialogButtonBox(
             QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel, self)
         self.btns.accepted.connect(self.accept)
         self.btns.rejected.connect(self.reject)
 
-        # hbox1 = QtWidgets.QHBoxLayout()
-        # hbox1.setSpacing(10)
-        # hbox1.addWidget(self.lbl_active)
-        # hbox1.addWidget(self.cb_primary)
-        #
-        # hbox2 = QtWidgets.QHBoxLayout()
-        # hbox2.setSpacing(10)
-        # hbox2.addWidget(self.lbl_primary)
-        # hbox2.addWidget(self.edt_primary)
-        #
-        # hbox3 = QtWidgets.QHBoxLayout()
-        # hbox3.setSpacing(10)
-        # hbox3.addWidget(self.lbl_alt)
-        # hbox3.addWidget(self.edt_alt)
-
         vbox = QtWidgets.QVBoxLayout(self)
         vbox.setSpacing(10)
-        for edt in self.layer_edts:
-            vbox.addWidget(edt)
-        # vbox.addLayout(hbox1)
-        # vbox.addSpacing(5)
-        # vbox.addLayout(hbox2)
-        # vbox.addLayout(hbox3)
+        hboxes = [QtWidgets.QHBoxLayout() for _ in self.layer_color_btns]
+        for il, hbox in enumerate(hboxes):
+            hbox.setSpacing(10)
+            hbox.addWidget(self.layer_color_btns[il])
+            hbox.addWidget(self.layer_name_edts[il])
+            vbox.addLayout(hbox)
         vbox.addSpacing(5)
         vbox.addWidget(self.btns)
 
