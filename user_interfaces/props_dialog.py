@@ -14,13 +14,13 @@ class PropsDialog(QtWidgets.QDialog):
         self.layer_select_cbs = [QtWidgets.QCheckBox(self) for _ in dxf_file.drawing.layers]
         self.layer_cbgp = QtWidgets.QButtonGroup()
         for il, l in enumerate(dxf_file.drawing.layers):
-            self.layer_color_btns[il].setStyleSheet("background-color: %s" % xterm_to_hex(l.color))
+            self.layer_color_btns[il].setStyleSheet("background-color: %s" % xterm_to_hex(l.get_color()))
             self.layer_color_btns[il].resize(self.layer_color_btns[il].sizeHint())
             self.layer_color_btns[il].clicked.connect(self.set_color)
             self.layer_select_cbs[il].setObjectName(str(il))
             self.layer_cbgp.addButton(self.layer_select_cbs[il], il)
         self.layer_cbgp.buttonClicked.connect(self.set_layer)
-        self.layer_name_edts = [QtWidgets.QLineEdit(l.name, self) for l in dxf_file.drawing.layers]
+        self.layer_name_edts = [QtWidgets.QLineEdit(l.dxf.name, self) for l in dxf_file.drawing.layers]
 
         self.btns = QtWidgets.QDialogButtonBox(
             QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel, self)
