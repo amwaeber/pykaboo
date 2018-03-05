@@ -1,10 +1,6 @@
 from PyQt5 import QtWidgets
 
 import ezdxf
-import dxfgrabber
-import io
-from dxfwrite import DXFEngine as dxf
-from dxfwrite import const
 
 from utility.config import paths
 
