@@ -43,19 +43,20 @@ class ColorPlot(MyMplCanvas):
         for e in dxf_file.drawing.entities:
             if self.dxf_color:
                 c = self.dxf_color
-            elif e.color < 256:
-                c = e.color
+            elif e.dxf.color < 256:
+                c = e.dxf.color
             else:
-                c = dxf_file.drawing.layers[e.layer].color
-            if e.dxftype == 'CIRCLE':
-                dxf_objects.append(patches.Circle(e.center[:-1], e.radius, fill=False, color=xterm_to_hex(c)))
-            elif e.dxftype == 'POLYLINE':
-                codes = [Path.MOVETO] + [Path.LINETO for _ in range(len(e.points) - 1)] + [Path.CLOSEPOLY]
-                path = Path([p[:-1] for p in e.points]+[e.points[0][:-1]], codes)
+                c = dxf_file.drawing.layers.get(e.dxf.layer).get_color()
+            if e.dxftype() == 'CIRCLE':
+                dxf_objects.append(patches.Circle(e.dxf.center[:-1], e.dxf.radius, fill=False, color=xterm_to_hex(c)))
+            elif e.dxftype() == 'POLYLINE':
+                codes = [Path.MOVETO] + [Path.LINETO for _ in range(e.__len__() - 1)] + [Path.CLOSEPOLY]
+                pts = [p[:-1] for p in e.points()]
+                path = Path(pts+[pts[0]], codes)
                 dxf_objects.append(patches.PathPatch(path, fill=False, color=xterm_to_hex(c)))
-            elif e.dxftype == 'LWPOLYLINE':
-                codes = [Path.MOVETO] + [Path.LINETO for _ in range(len(e.points) - 1)] + [Path.CLOSEPOLY]
-                path = Path(e.points+[e.points[0]], codes)
+            elif e.dxftype() == 'LWPOLYLINE':  # TODO: Test 'LWPOLYLINE'
+                codes = [Path.MOVETO] + [Path.LINETO for _ in range(e.__len__() - 1)] + [Path.CLOSEPOLY]
+                path = Path(e.get_rstrip_points()+[e.get_rstrip_points()[0]], codes)
                 dxf_objects.append(patches.PathPatch(path, fill=False, color=xterm_to_hex(c)))
         if len(dxf_objects):
             for patch in dxf_objects:
