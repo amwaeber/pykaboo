@@ -38,28 +38,8 @@ class ColorPlot(MyMplCanvas):
                          cmap=tum_jet.tum_jet, vmin=self.count_limits[0], vmax=self.count_limits[1])
 
     def draw_dxf(self, dxf_file, **kwargs):
-        self.dxf_color = kwargs.get('dxf_color', None)
-        dxf_objects = []
-        for e in dxf_file.drawing.entities:
-            if self.dxf_color:
-                c = self.dxf_color
-            elif e.dxf.color < 256:
-                c = e.dxf.color
-            else:
-                c = dxf_file.drawing.layers.get(e.dxf.layer).get_color()
-            if e.dxftype() == 'CIRCLE':
-                dxf_objects.append(patches.Circle(e.dxf.center[:-1], e.dxf.radius, fill=False, color=xterm_to_hex(c)))
-            elif e.dxftype() == 'POLYLINE':
-                codes = [Path.MOVETO] + [Path.LINETO for _ in range(e.__len__() - 1)] + [Path.CLOSEPOLY]
-                pts = [p[:-1] for p in e.points()]
-                path = Path(pts+[pts[0]], codes)
-                dxf_objects.append(patches.PathPatch(path, fill=False, color=xterm_to_hex(c)))
-            elif e.dxftype() == 'LWPOLYLINE':  # TODO: Test 'LWPOLYLINE'
-                codes = [Path.MOVETO] + [Path.LINETO for _ in range(e.__len__() - 1)] + [Path.CLOSEPOLY]
-                path = Path(e.get_rstrip_points()+[e.get_rstrip_points()[0]], codes)
-                dxf_objects.append(patches.PathPatch(path, fill=False, color=xterm_to_hex(c)))
-        if len(dxf_objects):
-            for patch in dxf_objects:
+        for patch in self.patches(dxf_file, **kwargs):
+            if patch:
                 self.axes.add_patch(patch)
 
     def draw_markers(self, markers):
@@ -71,19 +51,19 @@ class ColorPlot(MyMplCanvas):
         self.mat = kwargs.get('mat', self.mat)
         self.dxf = kwargs.get('dxf', self.dxf)
         self.markers = kwargs.get('markers', self.markers)
-        self.dxf_color = kwargs.get('dxf_color', None)
-        self.show_axes = kwargs.get('show_axes', True)
+        dxf_color = kwargs.get('dxf_color', None)
+        show_axes = kwargs.get('show_axes', True)
         self.axes.cla()
         if self.mat:
             self.draw_mat(self.mat)
         if self.dxf:
-            self.draw_dxf(self.dxf, dxf_color=self.dxf_color)
+            self.draw_dxf(self.dxf, dxf_color=dxf_color)
         if self.markers:
             self.draw_markers(self.markers)
         self.axes.set_xlim(self.plot_limits[0][0], self.plot_limits[0][1])
         self.axes.set_ylim(self.plot_limits[1][0], self.plot_limits[1][1])
-        self.axes.get_xaxis().set_visible(self.show_axes)
-        self.axes.get_yaxis().set_visible(self.show_axes)
+        self.axes.get_xaxis().set_visible(show_axes)
+        self.axes.get_yaxis().set_visible(show_axes)
         self.draw()
 
     def load_mat(self, filename):
@@ -126,3 +106,25 @@ class ColorPlot(MyMplCanvas):
         if not fname:  # capture cancel in dialog
             return
         self.fig.savefig(fname, bbox_inches='tight')
+
+    @staticmethod
+    def patches(dxf_file, **kwargs):
+        dxf_color = kwargs.get('dxf_color', None)
+        for e in dxf_file.drawing.entities:
+            if dxf_color:
+                c = dxf_color
+            elif e.dxf.color < 256:
+                c = e.dxf.color
+            else:
+                c = dxf_file.drawing.layers.get(e.dxf.layer).get_color()
+            if e.dxftype() == 'CIRCLE':
+                yield patches.Circle(e.dxf.center[:-1], e.dxf.radius, fill=False, color=xterm_to_hex(c))
+            elif e.dxftype() == 'POLYLINE':
+                codes = [Path.MOVETO] + [Path.LINETO for _ in range(e.__len__() - 1)] + [Path.CLOSEPOLY]
+                pts = [p[:-1] for p in e.points()]
+                path = Path(pts + [pts[0]], codes)
+                yield patches.PathPatch(path, fill=False, color=xterm_to_hex(c))
+            elif e.dxftype() == 'LWPOLYLINE':  # TODO: Test 'LWPOLYLINE'
+                codes = [Path.MOVETO] + [Path.LINETO for _ in range(e.__len__() - 1)] + [Path.CLOSEPOLY]
+                path = Path(e.get_rstrip_points() + [e.get_rstrip_points()[0]], codes)
+                yield patches.PathPatch(path, fill=False, color=xterm_to_hex(c))
