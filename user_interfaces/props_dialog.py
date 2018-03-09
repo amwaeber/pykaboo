@@ -3,8 +3,7 @@ from PyQt5 import QtWidgets
 from utility.xterm_hex_conv import xterm_to_hex
 
 
-# noinspection PyAttributeOutsideInit
-# noinspection PyArgumentList
+# noinspection PyAttributeOutsideInit, PyArgumentList
 class PropsDialog(QtWidgets.QDialog):
     def __init__(self, layer, dxf_file, parent=None):
         super(PropsDialog, self).__init__(parent)

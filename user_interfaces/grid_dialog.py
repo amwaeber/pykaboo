@@ -1,8 +1,7 @@
 from PyQt5 import QtWidgets
 
 
-# noinspection PyAttributeOutsideInit
-# noinspection PyArgumentList
+# noinspection PyAttributeOutsideInit, PyArgumentList
 class GridDialog(QtWidgets.QDialog):
     def __init__(self, grid, parent=None):
         super(GridDialog, self).__init__(parent)

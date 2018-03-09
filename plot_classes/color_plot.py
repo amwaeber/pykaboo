@@ -1,8 +1,7 @@
-import numpy as np
-import scipy.io
 from matplotlib import patches as patches
 from matplotlib.path import Path
 from PyQt5 import QtWidgets
+import scipy.io
 
 from plot_classes.my_mpl_canvas import MyMplCanvas
 from utility import tum_jet
@@ -10,7 +9,7 @@ from utility.xterm_hex_conv import xterm_to_hex
 from utility.config import paths
 
 
-# noinspection PyAttributeOutsideInit
+# noinspection PyAttributeOutsideInit, PyArgumentList
 class ColorPlot(MyMplCanvas):
 
     def __init__(self, *args, **kwargs):
@@ -70,11 +69,7 @@ class ColorPlot(MyMplCanvas):
         self.graph = scipy.io.loadmat(filename)
         self.select_coord = []
         self.select_nv = []
-        if 'result_sec_chan' in self.graph.keys():
-            self.cts_xy = np.reshape(2 * self.graph['result_sec_chan'].ravel() - self.graph['result'].ravel(),
-                                     (len(self.graph['result']), len(self.graph['result'])))
-        else:
-            self.cts_xy = self.graph['result']
+        self.cts_xy = self.graph['result']
         self.x_axis = self.graph['x'][0]
         self.y_axis = self.graph['y'][0]
         self.axes.cla()

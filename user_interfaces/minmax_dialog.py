@@ -1,8 +1,7 @@
 from PyQt5 import QtWidgets
 
 
-# noinspection PyAttributeOutsideInit
-# noinspection PyArgumentList
+# noinspection PyAttributeOutsideInit, PyArgumentList
 class MinMaxDialog(QtWidgets.QDialog):
     def __init__(self, count_limits, parent=None):
         super(MinMaxDialog, self).__init__(parent)

@@ -11,8 +11,7 @@ from utility.config import paths
 from utility.utility_functions import two_d_gaussian_sym
 
 
-# noinspection PyAttributeOutsideInit
-# noinspection PyArgumentList
+# noinspection PyAttributeOutsideInit, PyArgumentList
 class MatWidget(QtWidgets.QWidget):
     def __init__(self, logger, parent=None):
         super(MatWidget, self).__init__(parent)

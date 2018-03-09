@@ -1,12 +1,11 @@
 cycler==0.10.0
-dxfgrabber==1.0.0
-dxfwrite==1.2.1
+ezdxf==0.8.7
 matplotlib==2.1.2
-numpy==1.14.0
+numpy==1.14.1
 pyparsing==2.2.0
-PyQt5==5.10
+PyQt5==5.10.1
 python-dateutil==2.6.1
-pytz==2017.3
+pytz==2018.3
 scipy==1.0.0
-sip==4.19.7
+sip==4.19.8
 six==1.11.0

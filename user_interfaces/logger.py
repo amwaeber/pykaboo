@@ -3,10 +3,10 @@ from PyQt5 import QtGui, QtWidgets
 from utility.config import paths
 
 
-# noinspection PyAttributeOutsideInit
+# noinspection PyAttributeOutsideInit, PyArgumentList
 class Logger(QtWidgets.QWidget):
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super(Logger, self).__init__(parent)
 
         self.edt_log = QtWidgets.QTextEdit('Log: \n', self)

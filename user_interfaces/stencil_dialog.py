@@ -6,8 +6,7 @@ from utility.config import paths
 from helper_classes.dwg_xch_file import DwgXchFile
 
 
-# noinspection PyAttributeOutsideInit
-# noinspection PyArgumentList
+# noinspection PyAttributeOutsideInit, PyArgumentList
 class StencilDialog(QtWidgets.QDialog):
     def __init__(self, stencil, parent=None):
         super(StencilDialog, self).__init__(parent)
