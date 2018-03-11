@@ -16,10 +16,6 @@ class MatWidget(QtWidgets.QWidget):
     def __init__(self, logger, parent=None):
         super(MatWidget, self).__init__(parent)
         self.logger = logger
-        try:
-            self.parent().mat_is_open = True
-        except AttributeError:
-            self.logger.add_to_log("Could not set flag.")
         self.pick_stack = Stack()
 
         back_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'back.png')),
@@ -116,8 +112,5 @@ class MatWidget(QtWidgets.QWidget):
             self.status_bar.showMessage("X={0:.3f}, Y={1:.3f}".format(event.xdata, event.ydata))
 
     def closeEvent(self, event):
-        try:
-            self.parent().parent().parent().parent().mat_is_open = False
-        except AttributeError:
-            pass
+        self.parent().parent().parent().parent().del_mat()
         event.accept()

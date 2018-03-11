@@ -24,6 +24,7 @@ class CADWidget(QtWidgets.QWidget):
         self.stencil = None
         self.layer = None
         self.mode = 'pick_pt'
+        self.mat = None
 
         draw_line_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'line.png')),
                                           'Line tool', self)
@@ -169,6 +170,16 @@ class CADWidget(QtWidgets.QWidget):
         pass
 
     def transform(self):
+        try:
+            print(self.mat.pick_stack.items)
+        except AttributeError:
+            self.logger.add_to_log("No .mat file found.")
+        # try:
+        #     self.parent().mat_is_open = True
+        #     self.logger.add_to_log('Worked.')
+        # except AttributeError:
+        #     self.logger.add_to_log("Could not set flag.")
+        # print(str(self.parent().mat_is_open))
         pass
 
     def mouse_wheel(self, event):
@@ -221,3 +232,6 @@ class CADWidget(QtWidgets.QWidget):
                 return [event.xdata, event.ydata]
         else:
             return [None, None]
+
+    def set_mat(self, mat):
+        self.mat = mat

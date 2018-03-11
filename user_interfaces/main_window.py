@@ -26,8 +26,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mdi = QtWidgets.QMdiArea()  # create multiple document interface widget
         self.setCentralWidget(self.mdi)
 
-        self.mat_is_open = False
-
         self.logger = Logger(self)
         self.log_widget = QtWidgets.QMdiSubWindow()
         self.log_widget.setWidget(self.logger)
@@ -74,6 +72,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mdi.addSubWindow(self.cad_widget)
         self.cad_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
         self.cad_widget.show()
+        if hasattr(self, 'mat'):
+            self.cad.set_mat(self.mat)
 
     def open_dxf(self):
         self.cad = CADWidget("Open", 0, self.logger, self)
@@ -84,6 +84,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mdi.addSubWindow(self.cad_widget)
         self.cad_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
         self.cad_widget.show()
+        if hasattr(self, 'mat'):
+            self.cad.set_mat(self.mat)
 
     def open_template(self):
         self.cad = CADWidget("Open Template", 0, self.logger, self)
@@ -94,6 +96,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mdi.addSubWindow(self.cad_widget)
         self.cad_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
         self.cad_widget.show()
+        if hasattr(self, 'mat'):
+            self.cad.set_mat(self.mat)
 
     def save_dxf(self):
         active_widget = self.mdi.activeSubWindow().widget()
@@ -106,7 +110,7 @@ class MainWindow(QtWidgets.QMainWindow):
             active_widget.dxf_file.save(active_widget, overwrite=False)
 
     def import_mat(self):
-        if not self.mat_is_open:
+        if not hasattr(self, 'mat_widget'):
             self.mat = MatWidget(self.logger, self)
             self.mat_widget = QtWidgets.QMdiSubWindow()
             self.mat_widget.setWidget(self.mat)
@@ -115,9 +119,19 @@ class MainWindow(QtWidgets.QMainWindow):
             self.mdi.addSubWindow(self.mat_widget)
             self.mat_widget.resize(self.frameGeometry().height() * 3 // 4, self.frameGeometry().height() * 3 // 4)
             self.mat_widget.show()
+            for subWin in self.mdi.subWindowList():
+                if isinstance(subWin.widget(), CADWidget):
+                    subWin.widget().set_mat(self.mat)
+
+    def del_mat(self):
+        for subWin in self.mdi.subWindowList():
+            if isinstance(subWin.widget(), CADWidget):
+                subWin.widget().set_mat(None)
+        self.mdi.removeSubWindow(self.mat_widget)
+        del self.mat_widget
+        del self.mat
 
     def export_png(self):
         active_widget = self.mdi.activeSubWindow().widget()
         if isinstance(active_widget, CADWidget):
             active_widget.canvas.save(active_widget)
-        self.logger.add_to_log(str(self.mat_is_open))
