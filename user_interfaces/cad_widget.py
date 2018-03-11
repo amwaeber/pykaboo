@@ -47,8 +47,11 @@ class CADWidget(QtWidgets.QWidget):
                                         'Stencil tool', self)
         stencil_btn.triggered.connect(self.use_stencil)
         pick_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'pick.png')),
-                                     'Pick object', self)
+                                     'Pick point', self)
         pick_btn.triggered.connect(self.pick_point)
+        select_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'select.png')),
+                                       'Select object', self)
+        select_btn.triggered.connect(self.select_object)
         grid_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'grid.png')),
                                      'Show grid lines', self)
         grid_btn.triggered.connect(self.set_grid)
@@ -70,6 +73,9 @@ class CADWidget(QtWidgets.QWidget):
         transform_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'transform.png')),
                                           'Transform', self)
         transform_btn.triggered.connect(self.transform)
+        mat_pick_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'mat_pick.png')),
+                                         'Pick spot in image', self)
+        mat_pick_btn.triggered.connect(self.mat_pick_point)
 
         self.toolbar = QtWidgets.QToolBar("Draw")
         self.toolbar.addAction(draw_line_btn)
@@ -80,6 +86,7 @@ class CADWidget(QtWidgets.QWidget):
         self.toolbar.addAction(stencil_btn)
         self.toolbar.addSeparator()
         self.toolbar.addAction(pick_btn)
+        self.toolbar.addAction(select_btn)
         self.toolbar.addAction(grid_btn)
         self.toolbar.addAction(measure_btn)
         self.toolbar.addSeparator()
@@ -89,6 +96,7 @@ class CADWidget(QtWidgets.QWidget):
         self.toolbar.addAction(view_btn)
         self.toolbar.addSeparator()
         self.toolbar.addAction(transform_btn)
+        self.toolbar.addAction(mat_pick_btn)
 
         self.canvas = ColorPlot(self)
         self.canvas.mpl_connect('scroll_event', self.mouse_wheel)
@@ -145,6 +153,12 @@ class CADWidget(QtWidgets.QWidget):
         self.canvas.draw_canvas(markers=self.pick_stack.items)
         self.mode = 'pick_pt'
 
+    def select_object(self):
+        self.pick_stack.empty()
+        self.object_stack.empty()
+        self.canvas.draw_canvas(markers=self.pick_stack.items)
+        self.mode = 'sel_obj'
+
     def set_grid(self):
         self.grid = GridDialog(self.grid, self).exec_()
         if self.grid[0]:
@@ -191,6 +205,12 @@ class CADWidget(QtWidgets.QWidget):
             else:
                 self.logger.add_to_log("For trafo select at least three data points in mat and dxf each.\n"
                                        "Ensure that the same number of points is selected in each.")
+
+    def mat_pick_point(self):
+        self.pick_stack.empty()
+        self.object_stack.empty()
+        self.canvas.draw_canvas(markers=self.pick_stack.items)
+        self.mode = 'mat_pick_pt'
 
     def mouse_wheel(self, event):
         position = self.get_coordinates(event, use_grid=False)
