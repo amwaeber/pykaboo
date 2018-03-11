@@ -20,9 +20,10 @@ class CADWidget(QtWidgets.QWidget):
         self.logger = logger
         self.grid = [False, 1, 0.1]
         self.pick_stack = Stack()
+        self.object_stack = Stack()
         self.stencil = None
         self.layer = None
-        self.mode = 'pick'
+        self.mode = 'pick_pt'
 
         draw_line_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'line.png')),
                                           'Line tool', self)
@@ -44,7 +45,7 @@ class CADWidget(QtWidgets.QWidget):
         stencil_btn.triggered.connect(self.use_stencil)
         pick_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'pick.png')),
                                      'Pick object', self)
-        pick_btn.triggered.connect(self.pick_object)
+        pick_btn.triggered.connect(self.pick_point)
         grid_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'grid.png')),
                                      'Show grid lines', self)
         grid_btn.triggered.connect(self.set_grid)
@@ -135,10 +136,11 @@ class CADWidget(QtWidgets.QWidget):
             self.logger.add_to_log("Active stencil: {0}".format(self.stencil))
         pass
 
-    def pick_object(self):
+    def pick_point(self):
         self.pick_stack.empty()
+        self.object_stack.empty()
         self.canvas.draw_canvas(markers=self.pick_stack.items)
-        self.mode = 'pick'
+        self.mode = 'pick_pt'
 
     def set_grid(self):
         self.grid = GridDialog(self.grid, self).exec_()
@@ -195,7 +197,7 @@ class CADWidget(QtWidgets.QWidget):
         position = self.get_coordinates(event, use_grid=True)
         if any(position):
             if event.button == 1:
-                if self.mode == 'pick':
+                if self.mode == 'pick_pt':
                     obj_index, position = kd_nearest(self.dxf_file.points().coordinates(), position)
                     self.pick_stack.push(position)
                 else:
@@ -203,7 +205,7 @@ class CADWidget(QtWidgets.QWidget):
                 self.canvas.draw_canvas(markers=self.pick_stack.items)
             elif event.button == 3 and not self.pick_stack.is_empty():
                 self.pick_stack.pop()
-                if self.mode == 'pick':
+                if self.mode == 'pick_pt':
                     self.canvas.draw_canvas(markers=self.pick_stack.items)
 
     def get_coordinates(self, event, use_grid):
