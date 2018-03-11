@@ -180,39 +180,16 @@ class CADWidget(QtWidgets.QWidget):
         else:
             if self.pick_stack.size() == mat_pick_stack.size() and self.pick_stack.size() >= 3:
                 self.logger.add_to_log("Cool!")
-                self.trafo_matrix = affine_trafo(self.pick_stack.items, mat_pick_stack.items)
+                self.trafo_matrix = affine_trafo(mat_pick_stack.items, self.pick_stack.items)
                 self.logger.add_to_log('Affine transformation successful. Trace: {0:.2f}'.
                                        format(np.trace(self.trafo_matrix)))
                 self.mat_file = copy.deepcopy(self.mat.mat_file)
                 self.mat_file.transform(self.trafo_matrix)
-                #     x_ax = self.raw_img.x_axis
-                #     y_ax = self.raw_img.y_axis[::-1]
-                #     x_ax, y_ax = np.meshgrid(x_ax, y_ax)
-                #     x_ax, y_ax, _ = np.dot(np.array([x_ax, y_ax, 1]), self.trafo_matrix)
-                #     x_ax, y_ax = x_ax.ravel(), y_ax.ravel()
-                #
-                #     nx, ny = 300, 300
-                #     # Generate a regular grid to interpolate the data.
-                #     xi = np.linspace(min(x_ax), max(x_ax), nx)
-                #     yi = np.linspace(min(y_ax), max(y_ax), ny)
-                #     xi, yi = np.meshgrid(xi, yi)
-                #     # Interpolate using linear triangularization
-                #     self.raw_img.cts_xy = self.raw_img.graph[
-                #         'result']  # when using LP580 technique, switch to full image at this point
-                #     self.dxf_img.cts_xy = griddata((x_ax, y_ax), self.raw_img.cts_xy.ravel(), (xi, yi), method='linear',
-                #                                    fill_value=min(self.raw_img.cts_xy.ravel()))[::-1]
-                #     self.dxf_img.x_axis = xi[0]
-                #     self.dxf_img.y_axis = yi.transpose()[0]
-                #     self.dxf_img.cts_vmin = self.raw_img.cts_vmin
+
+                #     self.dxf_img.cts_vmin = self.raw_img.cts_vmin self.mat.canvas.count_limits & fixed
                 #     self.dxf_img.cts_vmax = self.raw_img.cts_vmax
-                #     self.dxf_img.select_coord = []
-                #     self.raw_img.select_coord = []
-                #     self.dxf_buffer.empty()
-                #     self.raw_buffer.empty()
-                #     self.dxf_img.draw_dxf()
-                #     self.raw_img.redraw()
-                #     self.nv_select_mode = True
-                self.canvas.draw_canvas(mat=self.mat_file)
+                self.pick_stack.empty()
+                self.canvas.draw_canvas(mat=self.mat_file, markers=self.pick_stack.items)
             else:
                 self.logger.add_to_log("For trafo select at least three data points in mat and dxf each.\n"
                                        "Ensure that the same number of points is selected in each.")
