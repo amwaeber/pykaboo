@@ -5,6 +5,7 @@ from plot_classes.color_plot import ColorPlot
 from helper_classes.dwg_xch_file import DwgXchFile
 from helper_classes.stack import Stack
 from utility.config import paths
+from utility.utility_functions import kd_nearest
 from user_interfaces.grid_dialog import GridDialog
 from user_interfaces.props_dialog import PropsDialog
 from user_interfaces.stencil_dialog import StencilDialog
@@ -21,6 +22,7 @@ class CADWidget(QtWidgets.QWidget):
         self.pick_stack = Stack()
         self.stencil = None
         self.layer = None
+        self.mode = 'pick'
 
         draw_line_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'line.png')),
                                           'Line tool', self)
@@ -134,7 +136,9 @@ class CADWidget(QtWidgets.QWidget):
         pass
 
     def pick_object(self):
-        pass
+        self.pick_stack.empty()
+        self.canvas.draw_canvas(markers=self.pick_stack.items)
+        self.mode = 'pick'
 
     def set_grid(self):
         self.grid = GridDialog(self.grid, self).exec_()
@@ -191,9 +195,16 @@ class CADWidget(QtWidgets.QWidget):
         position = self.get_coordinates(event, use_grid=True)
         if any(position):
             if event.button == 1:
-                self.pick_stack.push(position)
+                if self.mode == 'pick':
+                    obj_index, position = kd_nearest(self.dxf_file.points().coordinates(), position)
+                    self.pick_stack.push(position)
+                else:
+                    self.pick_stack.push(position)
+                self.canvas.draw_canvas(markers=self.pick_stack.items)
             elif event.button == 3 and not self.pick_stack.is_empty():
                 self.pick_stack.pop()
+                if self.mode == 'pick':
+                    self.canvas.draw_canvas(markers=self.pick_stack.items)
 
     def get_coordinates(self, event, use_grid):
         if any([event.xdata, event.ydata]):

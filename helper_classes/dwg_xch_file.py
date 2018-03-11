@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets
 import ezdxf
 
 from utility.config import paths
+from helper_classes.dxf_point import DXFPoint
 
 
 # noinspection PyArgumentList
@@ -44,3 +45,16 @@ class DwgXchFile:
             self.drawing.saveas(self.file_name)
         else:
             self.drawing.save()
+
+    def points(self):
+        pt_list = DXFPoint()
+        for e in self.drawing.entities:
+            if e.dxftype() == 'CIRCLE':
+                pt_list.add(e.dxf.center[:-1], e.dxf.handle)
+            elif e.dxftype() == 'POLYLINE':
+                for pt in e.points():
+                    pt_list.add(pt[:-1], e.dxf.handle)
+            elif e.dxftype() == 'LWPOLYLINE':  # TODO: Test 'LWPOLYLINE'
+                for pt in e.get_rstrip_points():
+                    pt_list.add(pt, e.dxf.handle)
+        return pt_list

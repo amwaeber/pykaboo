@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial import KDTree
 
 
 def test():
@@ -34,3 +35,9 @@ def distance(point1, point2):
 
 def flatten_list(lst):
     return [item for sublist in lst for item in sublist]
+
+
+def kd_nearest(point_list, pt):
+    tree = KDTree(point_list)
+    _, ind = tree.query(pt)
+    return ind, point_list[ind]
