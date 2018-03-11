@@ -26,3 +26,6 @@ class MatFile:
             self.file_name = fname
         self.graph = scipy.io.loadmat(self.file_name)
         parent.pick_stack.empty()
+
+    def transform(self, trafo_matrix):
+        pass

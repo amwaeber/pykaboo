@@ -25,7 +25,7 @@ def affine_trafo(raw_coords, real_coords):
         a, res, rank, s = np.linalg.lstsq(x, y, rcond=1e-4)
         return a
     else:
-        return []
+        raise ValueError('Could not find affine transformation.')
 
 
 def distance(point1, point2):

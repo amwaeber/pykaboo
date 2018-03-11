@@ -1,3 +1,5 @@
+import copy
+import numpy as np
 import os
 from PyQt5 import QtWidgets, QtGui, QtCore
 
@@ -5,7 +7,7 @@ from plot_classes.color_plot import ColorPlot
 from helper_classes.dwg_xch_file import DwgXchFile
 from helper_classes.stack import Stack
 from utility.config import paths
-from utility.utility_functions import kd_nearest
+from utility.utility_functions import affine_trafo, kd_nearest
 from user_interfaces.grid_dialog import GridDialog
 from user_interfaces.props_dialog import PropsDialog
 from user_interfaces.stencil_dialog import StencilDialog
@@ -171,16 +173,49 @@ class CADWidget(QtWidgets.QWidget):
 
     def transform(self):
         try:
-            print(self.mat.pick_stack.items)
+            mat_pick_stack = self.mat.pick_stack
         except AttributeError:
             self.logger.add_to_log("No .mat file found.")
-        # try:
-        #     self.parent().mat_is_open = True
-        #     self.logger.add_to_log('Worked.')
-        # except AttributeError:
-        #     self.logger.add_to_log("Could not set flag.")
-        # print(str(self.parent().mat_is_open))
-        pass
+            pass
+        else:
+            if self.pick_stack.size() == mat_pick_stack.size() and self.pick_stack.size() >= 3:
+                self.logger.add_to_log("Cool!")
+                self.trafo_matrix = affine_trafo(self.pick_stack.items, mat_pick_stack.items)
+                self.logger.add_to_log('Affine transformation successful. Trace: {0:.2f}'.
+                                       format(np.trace(self.trafo_matrix)))
+                self.mat_file = copy.deepcopy(self.mat.mat_file)
+                self.mat_file.transform(self.trafo_matrix)
+                #     x_ax = self.raw_img.x_axis
+                #     y_ax = self.raw_img.y_axis[::-1]
+                #     x_ax, y_ax = np.meshgrid(x_ax, y_ax)
+                #     x_ax, y_ax, _ = np.dot(np.array([x_ax, y_ax, 1]), self.trafo_matrix)
+                #     x_ax, y_ax = x_ax.ravel(), y_ax.ravel()
+                #
+                #     nx, ny = 300, 300
+                #     # Generate a regular grid to interpolate the data.
+                #     xi = np.linspace(min(x_ax), max(x_ax), nx)
+                #     yi = np.linspace(min(y_ax), max(y_ax), ny)
+                #     xi, yi = np.meshgrid(xi, yi)
+                #     # Interpolate using linear triangularization
+                #     self.raw_img.cts_xy = self.raw_img.graph[
+                #         'result']  # when using LP580 technique, switch to full image at this point
+                #     self.dxf_img.cts_xy = griddata((x_ax, y_ax), self.raw_img.cts_xy.ravel(), (xi, yi), method='linear',
+                #                                    fill_value=min(self.raw_img.cts_xy.ravel()))[::-1]
+                #     self.dxf_img.x_axis = xi[0]
+                #     self.dxf_img.y_axis = yi.transpose()[0]
+                #     self.dxf_img.cts_vmin = self.raw_img.cts_vmin
+                #     self.dxf_img.cts_vmax = self.raw_img.cts_vmax
+                #     self.dxf_img.select_coord = []
+                #     self.raw_img.select_coord = []
+                #     self.dxf_buffer.empty()
+                #     self.raw_buffer.empty()
+                #     self.dxf_img.draw_dxf()
+                #     self.raw_img.redraw()
+                #     self.nv_select_mode = True
+                self.canvas.draw_canvas(mat=self.mat_file)
+            else:
+                self.logger.add_to_log("For trafo select at least three data points in mat and dxf each.\n"
+                                       "Ensure that the same number of points is selected in each.")
 
     def mouse_wheel(self, event):
         position = self.get_coordinates(event, use_grid=False)
