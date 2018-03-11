@@ -179,15 +179,13 @@ class CADWidget(QtWidgets.QWidget):
             pass
         else:
             if self.pick_stack.size() == mat_pick_stack.size() and self.pick_stack.size() >= 3:
-                self.logger.add_to_log("Cool!")
                 self.trafo_matrix = affine_trafo(mat_pick_stack.items, self.pick_stack.items)
                 self.logger.add_to_log('Affine transformation successful. Trace: {0:.2f}'.
                                        format(np.trace(self.trafo_matrix)))
                 self.mat_file = copy.deepcopy(self.mat.mat_file)
                 self.mat_file.transform(self.trafo_matrix)
-
-                #     self.dxf_img.cts_vmin = self.raw_img.cts_vmin self.mat.canvas.count_limits & fixed
-                #     self.dxf_img.cts_vmax = self.raw_img.cts_vmax
+                self.canvas.count_limits_fixed = True
+                self.canvas.count_limits = self.mat.canvas.count_limits
                 self.pick_stack.empty()
                 self.canvas.draw_canvas(mat=self.mat_file, markers=self.pick_stack.items)
             else:
