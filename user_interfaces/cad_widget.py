@@ -27,9 +27,13 @@ class CADWidget(QtWidgets.QWidget):
         self.stencil = None
         self.layer = None
         self.mode = 'pick_free'
+        self.tool = 'free_select'
         self.mat = None
         self.mat_file = None
 
+        free_select_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'free_select.png')),
+                                            'Free select tool', self)
+        free_select_btn.triggered.connect(self.free_select)
         draw_line_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'line.png')),
                                           'Line tool', self)
         draw_line_btn.triggered.connect(self.draw_line)
@@ -63,9 +67,6 @@ class CADWidget(QtWidgets.QWidget):
         properties_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'properties.png')),
                                            'Set properties (layer, block)', self)
         properties_btn.triggered.connect(self.set_properties)
-        view_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'view.png')),
-                                     'View properties', self)
-        view_btn.triggered.connect(self.view_properties)
         transform_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'transform.png')),
                                           'Transform', self)
         transform_btn.triggered.connect(self.transform)
@@ -83,6 +84,7 @@ class CADWidget(QtWidgets.QWidget):
         pick_peak_btn.triggered.connect(self.pick_peak)
 
         self.toolbar = QtWidgets.QToolBar("Draw")
+        self.toolbar.addAction(free_select_btn)
         self.toolbar.addAction(draw_line_btn)
         self.toolbar.addAction(draw_rectangle_btn)
         self.toolbar.addAction(draw_circle_btn)
@@ -96,7 +98,6 @@ class CADWidget(QtWidgets.QWidget):
         self.toolbar.addAction(color_btn)
         self.toolbar.addAction(sel_stencil_btn)
         self.toolbar.addAction(properties_btn)
-        self.toolbar.addAction(view_btn)
         self.toolbar.addSeparator()
         self.toolbar.addAction(transform_btn)
         self.toolbar.addSeparator()
@@ -133,6 +134,9 @@ class CADWidget(QtWidgets.QWidget):
             self.canvas.draw_canvas(dxf=self.dxf_file)
             self.logger.add_to_log("Open Template.")
 
+    def free_select(self):
+        self.tool = 'free_select'
+
     def draw_line(self):
         pass
 
@@ -150,9 +154,11 @@ class CADWidget(QtWidgets.QWidget):
 
     def use_stencil(self):
         if not self.stencil:  # if no stencil has been selected yet, open dialog first
-            self.stencil = StencilDialog(self.stencil, self).exec_()
-            self.logger.add_to_log("Active stencil: {0}".format(self.stencil))
-        pass
+            stencil_name = StencilDialog(self.stencil, self).exec_()
+            self.stencil = DwgXchFile()
+            self.stencil.load(self, file_type='stencil', file_name=os.path.join(paths['stencils'], stencil_name))
+            self.logger.add_to_log("Active stencil: {0}".format(stencil_name))
+        self.tool = 'stencil'
 
     def set_grid(self):
         self.grid = GridDialog(self.grid, self).exec_()
@@ -170,15 +176,14 @@ class CADWidget(QtWidgets.QWidget):
         self.logger.add_to_log("Set color: {0}".format(self.color))
 
     def select_stencil(self):
-        self.stencil = StencilDialog(self.stencil, self).exec_()
-        self.logger.add_to_log("Active stencil: {0}".format(self.stencil))
+        stencil_name = StencilDialog(self.stencil, self).exec_()
+        self.stencil = DwgXchFile()
+        self.stencil.load(self, file_type='stencil', file_name=os.path.join(paths['stencils'], stencil_name))
+        self.logger.add_to_log("Active stencil: {0}".format(stencil_name))
 
     def set_properties(self):
         self.layer = PropsDialog(self.layer, self.dxf_file, self).exec_()
         self.logger.add_to_log("Active layer: {0}".format(self.layer))
-
-    def view_properties(self):
-        pass
 
     def transform(self):
         try:
