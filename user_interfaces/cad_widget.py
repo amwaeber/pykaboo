@@ -25,7 +25,7 @@ class CADWidget(QtWidgets.QWidget):
         self.object_stack = Stack()
         self.stencil = None
         self.layer = None
-        self.mode = 'pick_pt'
+        self.mode = 'pick_free'
         self.mat = None
 
         draw_line_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'line.png')),
@@ -46,12 +46,6 @@ class CADWidget(QtWidgets.QWidget):
         stencil_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'stencil.png')),
                                         'Stencil tool', self)
         stencil_btn.triggered.connect(self.use_stencil)
-        pick_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'pick.png')),
-                                     'Pick point', self)
-        pick_btn.triggered.connect(self.pick_point)
-        select_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'select.png')),
-                                       'Select object', self)
-        select_btn.triggered.connect(self.select_object)
         grid_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'grid.png')),
                                      'Show grid lines', self)
         grid_btn.triggered.connect(self.set_grid)
@@ -73,9 +67,18 @@ class CADWidget(QtWidgets.QWidget):
         transform_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'transform.png')),
                                           'Transform', self)
         transform_btn.triggered.connect(self.transform)
-        mat_pick_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'mat_pick.png')),
-                                         'Pick spot in image', self)
-        mat_pick_btn.triggered.connect(self.mat_pick_point)
+        pick_free_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'pick_free.png')),
+                                          'Pick free point', self)
+        pick_free_btn.triggered.connect(self.pick_free)
+        pick_node_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'pick_node.png')),
+                                          'Pick node', self)
+        pick_node_btn.triggered.connect(self.pick_node)
+        pick_object_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'pick_object.png')),
+                                            'Pick object', self)
+        pick_object_btn.triggered.connect(self.pick_object)
+        pick_peak_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'pick_peak.png')),
+                                          'Pick peak in image', self)
+        pick_peak_btn.triggered.connect(self.pick_peak)
 
         self.toolbar = QtWidgets.QToolBar("Draw")
         self.toolbar.addAction(draw_line_btn)
@@ -85,8 +88,6 @@ class CADWidget(QtWidgets.QWidget):
         self.toolbar.addAction(text_btn)
         self.toolbar.addAction(stencil_btn)
         self.toolbar.addSeparator()
-        self.toolbar.addAction(pick_btn)
-        self.toolbar.addAction(select_btn)
         self.toolbar.addAction(grid_btn)
         self.toolbar.addAction(measure_btn)
         self.toolbar.addSeparator()
@@ -96,7 +97,11 @@ class CADWidget(QtWidgets.QWidget):
         self.toolbar.addAction(view_btn)
         self.toolbar.addSeparator()
         self.toolbar.addAction(transform_btn)
-        self.toolbar.addAction(mat_pick_btn)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(pick_free_btn)
+        self.toolbar.addAction(pick_node_btn)
+        self.toolbar.addAction(pick_object_btn)
+        self.toolbar.addAction(pick_peak_btn)
 
         self.canvas = ColorPlot(self)
         self.canvas.mpl_connect('scroll_event', self.mouse_wheel)
@@ -147,18 +152,6 @@ class CADWidget(QtWidgets.QWidget):
             self.logger.add_to_log("Active stencil: {0}".format(self.stencil))
         pass
 
-    def pick_point(self):
-        self.pick_stack.empty()
-        self.object_stack.empty()
-        self.canvas.draw_canvas(markers=self.pick_stack.items)
-        self.mode = 'pick_pt'
-
-    def select_object(self):
-        self.pick_stack.empty()
-        self.object_stack.empty()
-        self.canvas.draw_canvas(markers=self.pick_stack.items)
-        self.mode = 'sel_obj'
-
     def set_grid(self):
         self.grid = GridDialog(self.grid, self).exec_()
         if self.grid[0]:
@@ -206,11 +199,29 @@ class CADWidget(QtWidgets.QWidget):
                 self.logger.add_to_log("For trafo select at least three data points in mat and dxf each.\n"
                                        "Ensure that the same number of points is selected in each.")
 
-    def mat_pick_point(self):
+    def pick_free(self):
         self.pick_stack.empty()
         self.object_stack.empty()
         self.canvas.draw_canvas(markers=self.pick_stack.items)
-        self.mode = 'mat_pick_pt'
+        self.mode = 'pick_free'
+
+    def pick_node(self):
+        self.pick_stack.empty()
+        self.object_stack.empty()
+        self.canvas.draw_canvas(markers=self.pick_stack.items)
+        self.mode = 'pick_node'
+
+    def pick_object(self):
+        self.pick_stack.empty()
+        self.object_stack.empty()
+        self.canvas.draw_canvas(markers=self.pick_stack.items)
+        self.mode = 'pick_obj'
+
+    def pick_peak(self):
+        self.pick_stack.empty()
+        self.object_stack.empty()
+        self.canvas.draw_canvas(markers=self.pick_stack.items)
+        self.mode = 'pick_peak'
 
     def mouse_wheel(self, event):
         position = self.get_coordinates(event, use_grid=False)
@@ -238,16 +249,27 @@ class CADWidget(QtWidgets.QWidget):
         position = self.get_coordinates(event, use_grid=True)
         if any(position):
             if event.button == 1:
-                if self.mode == 'pick_pt':
+                if self.mode == 'pick_free':
+                    self.pick_stack.push(position)
+                elif self.mode == 'pick_node':
                     obj_index, position = kd_nearest(self.dxf_file.points().coordinates(), position)
                     self.pick_stack.push(position)
-                else:
+                elif self.mode == 'pick_object':
+                    obj_index, position = kd_nearest(self.dxf_file.points().coordinates(), position)
+                    self.object_stack.push(obj_index)
+                elif self.mode == 'pick_peak':
                     self.pick_stack.push(position)
                 self.canvas.draw_canvas(markers=self.pick_stack.items)
             elif event.button == 3 and not self.pick_stack.is_empty():
-                self.pick_stack.pop()
-                if self.mode == 'pick_pt':
-                    self.canvas.draw_canvas(markers=self.pick_stack.items)
+                if self.mode == 'pick_free' and not self.pick_stack.is_empty():
+                    self.pick_stack.pop()
+                elif self.mode == 'pick_node' and not self.pick_stack.is_empty():
+                    self.pick_stack.pop()
+                elif self.mode == 'pick_object' and not self.object_stack.is_empty():
+                    self.object_stack.pop()
+                elif self.mode == 'pick_peak':
+                    self.pick_stack.pop()
+                self.canvas.draw_canvas(markers=self.pick_stack.items)
 
     def get_coordinates(self, event, use_grid):
         if any([event.xdata, event.ydata]):
