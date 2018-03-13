@@ -2,12 +2,13 @@ import copy
 import numpy as np
 import os
 from PyQt5 import QtWidgets, QtGui, QtCore
+from scipy import optimize as opt
 
 from plot_classes.color_plot import ColorPlot
 from helper_classes.dwg_xch_file import DwgXchFile
 from helper_classes.stack import Stack
 from utility.config import paths
-from utility.utility_functions import affine_trafo, kd_nearest
+from utility.utility_functions import affine_trafo, kd_nearest, two_d_gaussian_sym
 from user_interfaces.grid_dialog import GridDialog
 from user_interfaces.props_dialog import PropsDialog
 from user_interfaces.stencil_dialog import StencilDialog
@@ -27,6 +28,7 @@ class CADWidget(QtWidgets.QWidget):
         self.layer = None
         self.mode = 'pick_free'
         self.mat = None
+        self.mat_file = None
 
         draw_line_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'line.png')),
                                           'Line tool', self)
@@ -257,8 +259,18 @@ class CADWidget(QtWidgets.QWidget):
                 elif self.mode == 'pick_object':
                     obj_index, position = kd_nearest(self.dxf_file.points().coordinates(), position)
                     self.object_stack.push(obj_index)
-                elif self.mode == 'pick_peak':
-                    self.pick_stack.push(position)
+                elif self.mode == 'pick_peak' and self.mat_file:
+                    x_ax = self.mat_file.graph['x'][0]
+                    y_ax = self.mat_file.graph['y'][0][::-1]
+                    x_ax, y_ax = np.meshgrid(x_ax, y_ax)
+
+                    gauss_p0 = (self.canvas.count_limits[1], position[0], position[1], 0.2,
+                                self.canvas.count_limits[0])  # amplitude, x0, y0, sigma, offset
+                    param_bounds = ([0, position[0] - 1, position[1] - 1, 0, -np.inf],
+                                    [np.inf, position[0] + 1, position[1] + 1, np.inf, np.inf])
+                    popt, _ = opt.curve_fit(two_d_gaussian_sym, [x_ax, y_ax], self.mat_file.graph['result'].ravel(),
+                                            p0=gauss_p0, bounds=param_bounds)
+                    self.pick_stack.push([popt[1], popt[2]])
                 self.canvas.draw_canvas(markers=self.pick_stack.items)
             elif event.button == 3 and not self.pick_stack.is_empty():
                 if self.mode == 'pick_free' and not self.pick_stack.is_empty():
@@ -267,7 +279,7 @@ class CADWidget(QtWidgets.QWidget):
                     self.pick_stack.pop()
                 elif self.mode == 'pick_object' and not self.object_stack.is_empty():
                     self.object_stack.pop()
-                elif self.mode == 'pick_peak':
+                elif self.mode == 'pick_peak' and not self.pick_stack.is_empty():
                     self.pick_stack.pop()
                 self.canvas.draw_canvas(markers=self.pick_stack.items)
 
