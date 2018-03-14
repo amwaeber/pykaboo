@@ -67,7 +67,7 @@ class DwgXchFile:
         for e in stencil.drawing.entities:
             if e.dxf.layer not in self.drawing.layers:
                 self.drawing.layers.new(name=e.dxf.layer,
-                                        dxfattribs={'linetype': 'SOLID', 'color': self.drawing.layers.__len__()})
+                                        dxfattribs={'linetype': 'CONTINUOUS', 'color': self.drawing.layers.__len__()})
             if e.dxftype() == 'CIRCLE':
                 center = (e.dxf.center[0] + position[0], e.dxf.center[1] + position[1], e.dxf.center[2])
                 msp.add_circle(center, e.dxf.radius)
@@ -79,12 +79,9 @@ class DwgXchFile:
                 pt_list = [(p[0] + position[0], p[1] + position[1]) for p in e.get_rstrip_points()]
                 self.drawing.modelspace().add_lwpolyline(pt_list, dxfattribs={'layer': e.dxf.layer})
         self.added_objects.push(len(self.drawing.entities) - n_entities)
-        print(self.added_objects.items)
 
     def undo_add_stencil(self):
-        print(self.added_objects.items)
         if not self.added_objects.is_empty():
             msp = self.drawing.modelspace()
             for e in msp.query()[-self.added_objects.pop():]:
                 msp.delete_entity(e)
-        print(self.added_objects.items)
