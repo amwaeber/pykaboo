@@ -276,8 +276,12 @@ class CADWidget(QtWidgets.QWidget):
                     popt, _ = opt.curve_fit(two_d_gaussian_sym, [x_ax, y_ax], self.mat_file.graph['result'].ravel(),
                                             p0=gauss_p0, bounds=param_bounds)
                     self.pick_stack.push([popt[1], popt[2]])
-                self.canvas.draw_canvas(markers=self.pick_stack.items)
-            elif event.button == 3 and not self.pick_stack.is_empty():
+                if self.tool == 'free_select':
+                    self.canvas.draw_canvas(markers=self.pick_stack.items)
+                elif self.tool == 'stencil':
+                    self.dxf_file.add_stencil(self.stencil, self.pick_stack.pop())
+                    self.canvas.draw_canvas(dxf=self.dxf_file)
+            elif event.button == 3:
                 if self.mode == 'pick_free' and not self.pick_stack.is_empty():
                     self.pick_stack.pop()
                 elif self.mode == 'pick_node' and not self.pick_stack.is_empty():
@@ -286,7 +290,11 @@ class CADWidget(QtWidgets.QWidget):
                     self.object_stack.pop()
                 elif self.mode == 'pick_peak' and not self.pick_stack.is_empty():
                     self.pick_stack.pop()
-                self.canvas.draw_canvas(markers=self.pick_stack.items)
+                if self.tool == 'free_select':
+                    self.canvas.draw_canvas(markers=self.pick_stack.items)
+                elif self.tool == 'stencil':
+                    self.dxf_file.undo_add_stencil()
+                    self.canvas.draw_canvas(dxf=self.dxf_file)
 
     def get_coordinates(self, event, use_grid):
         if any([event.xdata, event.ydata]):

@@ -4,6 +4,7 @@ import ezdxf
 
 from utility.config import paths
 from helper_classes.dxf_point import DXFPoint
+from helper_classes.stack import Stack
 
 
 # noinspection PyArgumentList
@@ -12,6 +13,7 @@ class DwgXchFile:
         self.file_name = ''
         self.file_type = 'standard'
         self.drawing = ezdxf.new('R2010')
+        self.added_objects = Stack()
 
     def load(self, parent, file_type='standard', **kwargs):
         self.file_name = kwargs.get('file_name', self.file_name)
@@ -58,3 +60,31 @@ class DwgXchFile:
                 for pt in e.get_rstrip_points():
                     pt_list.add(pt, e.dxf.handle)
         return pt_list
+
+    def add_stencil(self, stencil, position):  # TODO: Change all DXF formats to beyond R12! Then implement Import Fct
+        msp = self.drawing.modelspace()
+        n_entities = len(self.drawing.entities)  # TODO: Clean way for undoing dxf insertion
+        for e in stencil.drawing.entities:
+            if e.dxf.layer not in self.drawing.layers:
+                self.drawing.layers.new(name=e.dxf.layer,
+                                        dxfattribs={'linetype': 'SOLID', 'color': self.drawing.layers.__len__()})
+            if e.dxftype() == 'CIRCLE':
+                center = (e.dxf.center[0] + position[0], e.dxf.center[1] + position[1], e.dxf.center[2])
+                msp.add_circle(center, e.dxf.radius)
+                print('circle', dxfattribs={'layer': e.dxf.layer})
+            elif e.dxftype() == 'POLYLINE':
+                pt_list = [(p[0] + position[0], p[1] + position[1], p[2]) for p in e.points()]
+                msp.add_polyline3d(pt_list, dxfattribs={'layer': e.dxf.layer})
+            elif e.dxftype() == 'LWPOLYLINE':  # TODO: Test 'LWPOLYLINE'
+                pt_list = [(p[0] + position[0], p[1] + position[1]) for p in e.get_rstrip_points()]
+                self.drawing.modelspace().add_lwpolyline(pt_list, dxfattribs={'layer': e.dxf.layer})
+        self.added_objects.push(len(self.drawing.entities) - n_entities)
+        print(self.added_objects.items)
+
+    def undo_add_stencil(self):
+        print(self.added_objects.items)
+        if not self.added_objects.is_empty():
+            msp = self.drawing.modelspace()
+            for e in msp.query()[-self.added_objects.pop():]:
+                msp.delete_entity(e)
+        print(self.added_objects.items)
