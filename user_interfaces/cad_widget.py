@@ -8,9 +8,9 @@ from plot_classes.color_plot import ColorPlot
 from helper_classes.dwg_xch_file import DwgXchFile
 from helper_classes.stack import Stack
 from utility.config import paths
-from utility.utility_functions import affine_trafo, kd_nearest, two_d_gaussian_sym
+from utility.utility_functions import affine_trafo, distance, kd_nearest, two_d_gaussian_sym
 from user_interfaces.grid_dialog import GridDialog
-from user_interfaces.props_dialog import PropsDialog
+from user_interfaces.layer_dialog import LayerDialog
 from user_interfaces.stencil_dialog import StencilDialog
 
 
@@ -169,7 +169,10 @@ class CADWidget(QtWidgets.QWidget):
             self.logger.add_to_log("Grid not active.")
 
     def measure(self):
-        pass
+        self.tool = 'measure'
+        self.pick_stack.empty()
+        self.object_stack.empty()
+        self.canvas.draw_canvas(markers=self.pick_stack.items)
 
     def select_color(self):
         self.color = QtWidgets.QColorDialog.getColor().name()
@@ -182,7 +185,7 @@ class CADWidget(QtWidgets.QWidget):
         self.logger.add_to_log("Active stencil: {0}".format(stencil_name))
 
     def set_properties(self):
-        self.layer = PropsDialog(self.layer, self.dxf_file, self).exec_()
+        self.layer = LayerDialog(self.layer, self.dxf_file, self).exec_()
         self.logger.add_to_log("Active layer: {0}".format(self.layer))
 
     def transform(self):
@@ -278,9 +281,17 @@ class CADWidget(QtWidgets.QWidget):
                     self.pick_stack.push([popt[1], popt[2]])
                 if self.tool == 'free_select':
                     self.canvas.draw_canvas(markers=self.pick_stack.items)
-                elif self.tool == 'stencil':
+                elif self.tool == 'measure':
+                    self.canvas.draw_canvas(dxf=self.dxf_file)
+                    if self.pick_stack.size() == 2:
+                        dist = distance(self.pick_stack.pop(), self.pick_stack.pop())
+                        msg = ('Distance d = {0:.2f} um, dx = {1:.2f} um, dy = {2:.2f} um.'
+                               .format(dist[0], abs(dist[1][0]), abs(dist[1][1])))
+                        self.logger.add_to_log(msg)
+                elif self.tool == 'stencil' and not self.pick_stack.is_empty():
                     self.dxf_file.add_stencil(self.stencil, self.pick_stack.pop())
                     self.canvas.draw_canvas(dxf=self.dxf_file)
+
             elif event.button == 3:
                 if self.mode == 'pick_free' and not self.pick_stack.is_empty():
                     self.pick_stack.pop()
@@ -290,7 +301,7 @@ class CADWidget(QtWidgets.QWidget):
                     self.object_stack.pop()
                 elif self.mode == 'pick_peak' and not self.pick_stack.is_empty():
                     self.pick_stack.pop()
-                if self.tool == 'free_select':
+                if self.tool == 'free_select' or 'measure':
                     self.canvas.draw_canvas(markers=self.pick_stack.items)
                 elif self.tool == 'stencil':
                     self.dxf_file.undo_add_stencil()

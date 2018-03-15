@@ -4,9 +4,9 @@ from utility.xterm_hex_conv import xterm_to_hex
 
 
 # noinspection PyAttributeOutsideInit, PyArgumentList
-class PropsDialog(QtWidgets.QDialog):
+class LayerDialog(QtWidgets.QDialog):
     def __init__(self, layer, dxf_file, parent=None):
-        super(PropsDialog, self).__init__(parent)
+        super(LayerDialog, self).__init__(parent)
         self.active_layer = layer
 
         self.layer_color_btns = [QtWidgets.QPushButton(self) for _ in dxf_file.drawing.layers]
@@ -47,5 +47,5 @@ class PropsDialog(QtWidgets.QDialog):
         sel_color_btn.setStyleSheet("background-color: %s" % color.name())
 
     def exec_(self):
-        super(PropsDialog, self).exec_()
+        super(LayerDialog, self).exec_()
         return self.active_layer
