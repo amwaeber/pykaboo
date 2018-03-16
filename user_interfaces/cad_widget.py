@@ -155,9 +155,10 @@ class CADWidget(QtWidgets.QWidget):
     def use_stencil(self):
         if not self.stencil:  # if no stencil has been selected yet, open dialog first
             stencil_name = StencilDialog(self.stencil, self).exec_()
-            self.stencil = DwgXchFile()
-            self.stencil.load(self, file_type='stencil', file_name=os.path.join(paths['stencils'], stencil_name))
-            self.logger.add_to_log("Active stencil: {0}".format(stencil_name))
+            if stencil_name:
+                self.stencil = DwgXchFile()
+                self.stencil.load(self, file_type='stencil', file_name=os.path.join(paths['stencils'], stencil_name))
+                self.logger.add_to_log("Active stencil: {0}".format(stencil_name))
         self.tool = 'stencil'
 
     def set_grid(self):
@@ -180,9 +181,10 @@ class CADWidget(QtWidgets.QWidget):
 
     def select_stencil(self):
         stencil_name = StencilDialog(self.stencil, self).exec_()
-        self.stencil = DwgXchFile()
-        self.stencil.load(self, file_type='stencil', file_name=os.path.join(paths['stencils'], stencil_name))
-        self.logger.add_to_log("Active stencil: {0}".format(stencil_name))
+        if stencil_name:
+            self.stencil = DwgXchFile()
+            self.stencil.load(self, file_type='stencil', file_name=os.path.join(paths['stencils'], stencil_name))
+            self.logger.add_to_log("Active stencil: {0}".format(stencil_name))
 
     def set_properties(self):
         self.layer = LayerDialog(self.layer, self.dxf_file, self).exec_()
@@ -288,7 +290,7 @@ class CADWidget(QtWidgets.QWidget):
                         msg = ('Distance d = {0:.2f} um, dx = {1:.2f} um, dy = {2:.2f} um.'
                                .format(dist[0], abs(dist[1][0]), abs(dist[1][1])))
                         self.logger.add_to_log(msg)
-                elif self.tool == 'stencil' and not self.pick_stack.is_empty():
+                elif self.tool == 'stencil' and self.stencil and not self.pick_stack.is_empty():
                     self.dxf_file.add_stencil(self.stencil, self.pick_stack.pop())
                     self.canvas.draw_canvas(dxf=self.dxf_file)
 
@@ -301,9 +303,9 @@ class CADWidget(QtWidgets.QWidget):
                     self.object_stack.pop()
                 elif self.mode == 'pick_peak' and not self.pick_stack.is_empty():
                     self.pick_stack.pop()
-                if self.tool == 'free_select' or 'measure':
+                if self.tool == 'free_select' or self.tool == 'measure':
                     self.canvas.draw_canvas(markers=self.pick_stack.items)
-                elif self.tool == 'stencil':
+                elif self.tool == 'stencil' and self.stencil:
                     self.dxf_file.undo_add_stencil()
                     self.canvas.draw_canvas(dxf=self.dxf_file)
 
