@@ -65,36 +65,6 @@ class ColorPlot(MyMplCanvas):
         self.axes.get_yaxis().set_visible(show_axes)
         self.draw()
 
-    def load_mat(self, filename):
-        self.graph = scipy.io.loadmat(filename)
-        self.select_coord = []
-        self.select_nv = []
-        self.cts_xy = self.graph['result']
-        self.x_axis = self.graph['x'][0]
-        self.y_axis = self.graph['y'][0]
-        self.axes.cla()
-        self.axes.imshow(self.cts_xy, extent=(self.x_axis[0], self.x_axis[-1],
-                                              self.y_axis[0], self.y_axis[-1]), cmap=tum_jet.tum_jet,
-                         vmin=self.cts_vmin, vmax=self.cts_vmax)
-        self.draw()
-
-    def redraw(self, **kwargs):
-        self.cts_vmin = kwargs.get('cts_vmin', self.cts_vmin)
-        self.cts_vmax = kwargs.get('cts_vmax', self.cts_vmax)
-        self.select_coord = kwargs.get('scatter', self.select_coord)
-        self.select_nv = kwargs.get('sel_scatter', self.select_nv)
-        self.axes.cla()
-        self.axes.imshow(self.cts_xy, extent=(self.x_axis[0], self.x_axis[-1],
-                                              self.y_axis[0], self.y_axis[-1]), cmap=tum_jet.tum_jet,
-                         vmin=self.cts_vmin, vmax=self.cts_vmax)
-        if len(self.select_coord):
-            self.axes.plot([pt[0] for pt in self.select_coord], [pt[1] for pt in self.select_coord], ls='None',
-                           marker='o', markerfacecolor='None', markeredgecolor='k')
-        if len(self.select_nv):
-            self.axes.plot([pt[0] for pt in self.select_nv], [pt[1] for pt in self.select_nv], ls='None', marker='o',
-                           markerfacecolor='r', markeredgecolor='w')
-        self.draw()
-
     def save(self, parent):
         fname = QtWidgets.QFileDialog.getSaveFileName(parent, 'Save File', paths['registration'],
                                                       "Portable network graphics (*.png)")[0]
