@@ -3,10 +3,10 @@ from PyQt5 import QtGui, QtWidgets
 from utility.config import paths
 
 
-# noinspection PyAttributeOutsideInit
+# noinspection PyAttributeOutsideInit, PyArgumentList
 class Logger(QtWidgets.QWidget):
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super(Logger, self).__init__(parent)
 
         self.edt_log = QtWidgets.QTextEdit('Log: \n', self)
@@ -31,7 +31,9 @@ class Logger(QtWidgets.QWidget):
 
     def save(self):
         fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', paths['registration'], "Text files (*.txt)")[0]
-        if not fname.endswith('.txt'):
+        if not fname:  # capture cancel in dialog
+            return
+        elif not fname.endswith('.txt'):
             fname += ".txt"
         with open(fname, 'w') as file:
             file.write(self.edt_log.toPlainText())
@@ -43,5 +45,5 @@ class Logger(QtWidgets.QWidget):
     def clear(self):
         self.edt_log.setText('Log: ')
 
-    def closeEvent(self, event):
+    def closeEvent(self, event):  # deactivate closing button
         event.ignore()

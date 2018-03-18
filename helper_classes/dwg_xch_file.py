@@ -1,88 +1,87 @@
-import dxfgrabber
-import os
-from dxfwrite import DXFEngine as dxf
-from matplotlib import patches as patches
-from matplotlib.path import Path
+from PyQt5 import QtWidgets
+
+import ezdxf
 
 from utility.config import paths
-from utility.utility_functions import flatten_list
+from helper_classes.dxf_point import DXFPoint
+from helper_classes.stack import Stack
 
 
+# noinspection PyArgumentList
 class DwgXchFile:
     def __init__(self):
-        self.location = None
-        self.entities = []
-        self.new_entities = []
-        self.layers = []
-        self.shapes = []
-        self.patch_list = []
-        self.new_patch_list = []
+        self.file_name = ''
+        self.file_type = 'standard'
+        self.drawing = ezdxf.new('R2010')
+        self.added_objects = Stack()
 
-    def load(self, fname, flayers, fshapes):
-        self.location = fname
-        self.layers = flayers
-        self.shapes = fshapes
-        dwg_in = dxfgrabber.readfile(fname)
-        for l in range(len(self.layers)):
-            all_layer_cont = [entity for entity in dwg_in.entities if entity.layer == self.layers[l]]
-            if self.shapes[l] == 'POLYLINE':
-                for entity in all_layer_cont:
-                    if not (entity.points[0] == entity.points[-1]):
-                        entity.points.append(entity.points[0])
-            self.entities.append(all_layer_cont)
+    def load(self, parent, file_type='standard', **kwargs):
+        self.file_name = kwargs.get('file_name', self.file_name)
+        self.file_type = file_type
+        if self.file_type == 'standard':
+            fname = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['registration'],
+                                                          "Drawing interchange files (*.dxf)")[0]
+        elif self.file_type == 'template':
+            fname = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['templates'],
+                                                          "Drawing interchange files (*.dxf)")[0]
+        elif self.file_type == 'stencil' and not self.file_name:
+            fname = QtWidgets.QFileDialog.getOpenFileName(parent, 'Open file', paths['stencils'],
+                                                          "Drawing interchange files (*.dxf)")[0]
+        elif self.file_type == 'stencil':
+            fname = self.file_name
+        else:
+            fname = None
+        if not fname:  # capture cancel in dialog
+            return
+        self.file_name = fname
+        self.drawing = ezdxf.readfile(self.file_name)
 
-        for l in range(len(self.layers)):
-            if self.layers[l] == 'ALIGN':
-                for entity in self.entities[l]:
-                    codes = [Path.MOVETO] + [Path.LINETO for i in range(len(entity.points) - 2)] + [Path.CLOSEPOLY]
-                    path = Path([p[:-1] for p in entity.points], codes)
-                    self.patch_list.append(patches.PathPatch(path, fill=False, color='c'))
-            elif self.layers[l] == 'COORD':
-                for entity in self.entities[l]:
-                    self.patch_list.append(patches.Circle(entity.center[:-1], entity.radius, fill=False, color='g'))
-            elif self.layers[l] == 'MAGNET':
-                for entity in self.entities[l]:
-                    codes = [Path.MOVETO] + [Path.LINETO for i in range(len(entity.points) - 2)] + [Path.CLOSEPOLY]
-                    path = Path([p[:-1] for p in entity.points], codes)
-                    self.patch_list.append(patches.PathPatch(path, fill=False, color='r'))
+    def save(self, parent, overwrite=True):
+        if any([not overwrite, not self.file_name, not self.file_type == 'standard']):
+            fname = QtWidgets.QFileDialog.getSaveFileName(parent, 'Save File', paths['registration'],
+                                                          "Drawing interchange files (*.dxf)")[0]
+            if not fname:  # capture cancel in dialog
+                return
+            self.file_name = fname
+            self.file_type = 'standard'
+            self.drawing.saveas(self.file_name)
+        else:
+            self.drawing.save()
 
-    def add(self, magnet_name, pos):
-        dwg_mag = dxfgrabber.readfile(os.path.join(paths['dxf'], magnet_name + '.dxf'))
-        all_layer_cont = [entity for entity in dwg_mag.entities if entity.layer == 'MAGNET']
-        for entity in all_layer_cont:
-            entity.points = [(pt[0] + 470 + pos[0], pt[1] + 470 + pos[1]) for pt in entity.points]
-            if not (entity.points[0] == entity.points[-1]):
-                entity.points.append(entity.points[0])
-        self.new_entities.append(all_layer_cont)
-        added_patches = []
-        for entity in self.new_entities[-1]:
-            codes = [Path.MOVETO] + [Path.LINETO for i in range(len(entity.points) - 2)] + [Path.CLOSEPOLY]
-            path = Path(entity.points, codes)
-            added_patches.append(patches.PathPatch(path, fill=False, color='y'))
-        self.new_patch_list.append(added_patches)
+    def points(self):
+        pt_list = DXFPoint()
+        for e in self.drawing.entities:
+            if e.dxftype() == 'CIRCLE':
+                pt_list.add(e.dxf.center[:-1], e.dxf.handle)
+            elif e.dxftype() == 'POLYLINE':
+                for pt in e.points():
+                    pt_list.add(pt[:-1], e.dxf.handle)
+            elif e.dxftype() == 'LWPOLYLINE':  # TODO: Test 'LWPOLYLINE'
+                for pt in e.get_rstrip_points():
+                    pt_list.add(pt, e.dxf.handle)
+        return pt_list
 
-    def remove_last(self):
-        self.new_entities.pop()
-        self.new_patch_list.pop()
+    def add_stencil(self, stencil, position):  # TODO: Change all DXF formats to beyond R12! Then implement Import Fct
+        msp = self.drawing.modelspace()
+        n_entities = len(self.drawing.entities)  # TODO: Clean way for undoing dxf insertion
+        for e in stencil.drawing.entities:
+            if e.dxf.layer not in self.drawing.layers:
+                self.drawing.layers.new(name=e.dxf.layer,
+                                        dxfattribs={'linetype': 'CONTINUOUS', 'color': self.drawing.layers.__len__()})
+            if e.dxftype() == 'CIRCLE':
+                center = (e.dxf.center[0] + position[0], e.dxf.center[1] + position[1], e.dxf.center[2])
+                msp.add_circle(center, e.dxf.radius)
+                print('circle', dxfattribs={'layer': e.dxf.layer})
+            elif e.dxftype() == 'POLYLINE':
+                pt_list = [(p[0] + position[0], p[1] + position[1], p[2]) for p in e.points()]
+                msp.add_polyline3d(pt_list, dxfattribs={'layer': e.dxf.layer})
+            elif e.dxftype() == 'LWPOLYLINE':  # TODO: Test 'LWPOLYLINE'
+                pt_list = [(p[0] + position[0], p[1] + position[1]) for p in e.get_rstrip_points()]
+                self.drawing.modelspace().add_lwpolyline(pt_list, dxfattribs={'layer': e.dxf.layer})
+        self.added_objects.push(len(self.drawing.entities) - n_entities)
 
-    def save(self, fname):
-        dwg_out = dxf.drawing(fname)
-        for ind, layer in enumerate(self.layers):
-            dwg_out.add_layer(layer, color=ind + 1)
-        for align in self.entities[0]:
-            pline = dxf.polyline(align.points, color=256, layer='ALIGN')
-            pline.close()
-            dwg_out.add(pline)
-        for coord in self.entities[1]:
-            dwg_out.add(dxf.circle(coord.radius, coord.center, color=256, layer='COORD'))
-        for mag in self.entities[2]:
-            pline = dxf.polyline(mag.points, color=256, layer='MAGNET')
-            pline.close()
-            dwg_out.add(pline)
-        for mag in flatten_list(self.new_entities):
-            pline = dxf.polyline(mag.points, color=256, layer='MAGNET')
-            pline.close()
-            dwg_out.add(pline)
-        dwg_out.save()
-
-
+    def undo_add_stencil(self):
+        if not self.added_objects.is_empty():
+            msp = self.drawing.modelspace()
+            for e in msp.query()[-self.added_objects.pop():]:
+                msp.delete_entity(e)
