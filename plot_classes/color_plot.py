@@ -1,7 +1,6 @@
 from matplotlib import patches as patches
 from matplotlib.path import Path
 from PyQt5 import QtWidgets
-import scipy.io
 
 from plot_classes.my_mpl_canvas import MyMplCanvas
 from utility import tum_jet
@@ -64,6 +63,9 @@ class ColorPlot(MyMplCanvas):
         self.axes.get_xaxis().set_visible(show_axes)
         self.axes.get_yaxis().set_visible(show_axes)
         self.draw()
+
+    def update_canvas(self, **kwargs):  # TODO: Change canvas methods to partial updates
+        pass
 
     def save(self, parent):
         fname = QtWidgets.QFileDialog.getSaveFileName(parent, 'Save File', paths['registration'],
