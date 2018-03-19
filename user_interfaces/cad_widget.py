@@ -37,18 +37,23 @@ class CADWidget(QtWidgets.QWidget):
         draw_line_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'line.png')),
                                           'Line tool', self)
         draw_line_btn.triggered.connect(self.draw_line)
+        draw_line_btn.setEnabled(False)  # TODO: Implement line
         draw_rectangle_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'rectangle.png')),
                                                'Rectangle tool', self)
         draw_rectangle_btn.triggered.connect(self.draw_rectangle)
+        draw_rectangle_btn.setEnabled(False)  # TODO: Implement rectangle
         draw_circle_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'circle.png')),
                                             'Circle tool', self)
         draw_circle_btn.triggered.connect(self.draw_circle)
+        draw_circle_btn.setEnabled(False)  # TODO: Implement circle
         draw_polyline_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'polyline.png')),
                                               'Polyline tool', self)
         draw_polyline_btn.triggered.connect(self.draw_polyline)
+        draw_polyline_btn.setEnabled(False)  # TODO: Implement polyline
         text_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'text.png')),
                                      'Add text', self)
         text_btn.triggered.connect(self.add_text)
+        text_btn.setEnabled(False)  # TODO: Implement text
         stencil_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'stencil.png')),
                                         'Stencil tool', self)
         stencil_btn.triggered.connect(self.use_stencil)
@@ -64,9 +69,9 @@ class CADWidget(QtWidgets.QWidget):
         sel_stencil_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'select_stencil.png')),
                                             'Select stencil', self)
         sel_stencil_btn.triggered.connect(self.select_stencil)
-        properties_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'properties.png')),
-                                           'Set properties (layer, block)', self)
-        properties_btn.triggered.connect(self.set_properties)
+        layer_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'properties.png')),
+                                      'Set layer properties', self)
+        layer_btn.triggered.connect(self.set_layer)
         transform_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'transform.png')),
                                           'Transform', self)
         transform_btn.triggered.connect(self.transform)
@@ -97,7 +102,7 @@ class CADWidget(QtWidgets.QWidget):
         self.toolbar.addSeparator()
         self.toolbar.addAction(color_btn)
         self.toolbar.addAction(sel_stencil_btn)
-        self.toolbar.addAction(properties_btn)
+        self.toolbar.addAction(layer_btn)
         self.toolbar.addSeparator()
         self.toolbar.addAction(transform_btn)
         self.toolbar.addSeparator()
@@ -178,6 +183,7 @@ class CADWidget(QtWidgets.QWidget):
     def select_color(self):
         self.color = QtWidgets.QColorDialog.getColor().name()
         self.logger.add_to_log("Set color: {0}".format(self.color))
+        # TODO: assign color to selection/new items
 
     def select_stencil(self):
         stencil_name = StencilDialog(self.stencil, self).exec_()
@@ -186,9 +192,10 @@ class CADWidget(QtWidgets.QWidget):
             self.stencil.load(self, file_type='stencil', file_name=os.path.join(paths['stencils'], stencil_name))
             self.logger.add_to_log("Active stencil: {0}".format(stencil_name))
 
-    def set_properties(self):
+    def set_layer(self):
         self.layer = LayerDialog(self.layer, self.dxf_file, self).exec_()
         self.logger.add_to_log("Active layer: {0}".format(self.layer))
+        # TODO: set layer properties in addition to displaying them
 
     def transform(self):
         try:
