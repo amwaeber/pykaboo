@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial import KDTree
 
 
 def test():
@@ -24,8 +25,19 @@ def affine_trafo(raw_coords, real_coords):
         a, res, rank, s = np.linalg.lstsq(x, y, rcond=1e-4)
         return a
     else:
-        return []
+        raise ValueError('Could not find affine transformation.')
+
+
+def distance(point1, point2):
+    dp = np.array(point2)-np.array(point1)
+    return [np.linalg.norm(dp), dp]
 
 
 def flatten_list(lst):
     return [item for sublist in lst for item in sublist]
+
+
+def kd_nearest(point_list, pt):
+    tree = KDTree(point_list)
+    _, ind = tree.query(pt)
+    return ind, point_list[ind]

@@ -160,3 +160,4 @@ venv.bak/
 .idea/modules.xml
 .idea/pykaboo.iml
 .idea/vcs.xml
+.idea/inspectionProfiles/
