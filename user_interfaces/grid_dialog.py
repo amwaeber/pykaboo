@@ -7,9 +7,9 @@ class GridDialog(QtWidgets.QDialog):
         super(GridDialog, self).__init__(parent)
         self.grid = grid
 
-        self.lbl_active = QtWidgets.QLabel("Primary Grid active", self)
-        self.cb_primary = QtWidgets.QCheckBox(self)
-        self.cb_primary.setChecked(self.grid[0])
+        self.lbl_active = QtWidgets.QLabel("Grid active", self)
+        self.cb_active = QtWidgets.QCheckBox(self)
+        self.cb_active.setChecked(self.grid[0])
         self.lbl_primary = QtWidgets.QLabel("Primary Grid:", self)
         self.edt_primary = QtWidgets.QLineEdit(str(self.grid[1]), self)
         self.lbl_alt = QtWidgets.QLabel("Alternative Grid:", self)
@@ -22,7 +22,7 @@ class GridDialog(QtWidgets.QDialog):
         hbox1 = QtWidgets.QHBoxLayout()
         hbox1.setSpacing(10)
         hbox1.addWidget(self.lbl_active)
-        hbox1.addWidget(self.cb_primary)
+        hbox1.addWidget(self.cb_active)
 
         hbox2 = QtWidgets.QHBoxLayout()
         hbox2.setSpacing(10)
@@ -45,4 +45,4 @@ class GridDialog(QtWidgets.QDialog):
 
     def exec_(self):
         super(GridDialog, self).exec_()
-        return [self.cb_primary.isChecked(), float(self.edt_primary.text()), float(self.edt_alt.text())]
+        return [self.cb_active.isChecked(), float(self.edt_primary.text()), float(self.edt_alt.text())]

@@ -8,6 +8,19 @@ from utility.config import paths
 
 # noinspection PyArgumentList
 class MatFile:
+    """ Class containing basic information of imported mat file.
+
+        Class attributes are initialised to default values in __init__.
+
+        Attributes:
+            file_name (string): Name of mat file including path.
+            graph (dict of np.array): Contains actual image information. Keys are:
+                N (np.array): 2d array containing dimensions of x,y, and z values. Default np.array([[100, 100, 1]]).
+                x (np.array): 2d array containing x axis coordinates. Default np.array([np.linspace(0, 10, 100)]).
+                y (np.array): 2d array containing y axis coordinates. Default np.array([np.linspace(0, 10, 100)]).
+                z (np.array): 2d array containing z axis coordinates. Default np.array([[0.]]).
+                result (np.array): 2d array containing intensity values. Default np.zeros((100, 100)).
+    """
     def __init__(self):
         self.file_name = ''
         self.graph = {'N': np.array([[100, 100, 1]]),

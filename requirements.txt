@@ -1,11 +1,12 @@
 cycler==0.10.0
-ezdxf==0.8.7
-matplotlib==2.1.2
-numpy==1.14.1
+ezdxf==0.8.8
+kiwisolver==1.0.1
+matplotlib==2.2.2
+numpy==1.14.2
 pyparsing==2.2.0
 PyQt5==5.10.1
-python-dateutil==2.6.1
-pytz==2018.3
+python-dateutil==2.7.2
+pytz==2018.4
 scipy==1.0.0
 sip==4.19.8
 six==1.11.0

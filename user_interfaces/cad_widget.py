@@ -58,7 +58,7 @@ class CADWidget(QtWidgets.QWidget):
                                         'Stencil tool', self)
         stencil_btn.triggered.connect(self.use_stencil)
         grid_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'grid.png')),
-                                     'Show grid lines', self)
+                                     'Coordinate grid', self)
         grid_btn.triggered.connect(self.set_grid)
         measure_btn = QtWidgets.QAction(QtGui.QIcon(os.path.join(paths['icons'], 'measure.png')),
                                         'Measure', self)
